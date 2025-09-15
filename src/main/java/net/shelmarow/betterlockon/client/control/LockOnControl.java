@@ -62,7 +62,7 @@ public class LockOnControl {
 
             double currentMouseX = MC.mouseHandler.xpos();
             double distanceX = currentMouseX - lastMouseX;
-            double currentDeltaMouseX = distanceX == 0 ? 0 : (distanceX > 0 ? 1 : -1);
+            int currentDeltaMouseX = distanceX == 0 ? 0 : (distanceX > 0 ? 1 : -1);
             lastMovedDistanceX += Mth.wrapDegrees(distanceX/30);
 
             double currentMouseY = MC.mouseHandler.ypos();
@@ -138,7 +138,7 @@ public class LockOnControl {
         LockOnControl.lastMovedDistanceY = lastMovedDistanceY;
     }
 
-    private static void triggerTargetChange(ClientLevel level, double deltaMouseX) {
+    private static void triggerTargetChange(ClientLevel level, int deltaMouseX) {
         LocalPlayerPatch playerPatch = EpicFightCapabilities.getEntityPatch(MC.player, LocalPlayerPatch.class);
         if (playerPatch != null) {
             LivingEntity target = playerPatch.getTarget();
@@ -210,7 +210,7 @@ public class LockOnControl {
     }
 
     //获取视野范围内未被遮挡的实体
-    public static List<LivingEntity> entitiesCanBeSeen(LocalPlayer player, ClientLevel level,LivingEntity target,double deltaMouseX) {
+    public static List<LivingEntity> entitiesCanBeSeen(LocalPlayer player, ClientLevel level,LivingEntity target,int deltaMouseX) {
         Frustum frustum = MC.levelRenderer.getFrustum();
         List<LivingEntity> livingEntities = new ArrayList<>();
         for (Entity entity : level.entitiesForRendering()) {
@@ -223,17 +223,17 @@ public class LockOnControl {
 
 
     //整合条件
-    private static boolean canBeSeenAsTarget(Frustum frustum, LocalPlayer player, Entity entity, LivingEntity target, ClientLevel level, double deltaMouseX) {
+    private static boolean canBeSeenAsTarget(Frustum frustum, LocalPlayer player, Entity entity, LivingEntity target, ClientLevel level, int deltaMouseX) {
         int delta = getEntitySide(player,entity);
         double maxRange = LockOnConfig.MAX_TARGET_SELECT_DISTANCE.get();
-        boolean valid = (entity instanceof Mob || entity instanceof Player)
+        boolean valid = getEntitySide(player, entity) == deltaMouseX || deltaMouseX == 0;
+        valid = valid && (entity instanceof Mob || entity instanceof Player)
                 && entity.isAlive()
                 && !entity.getUUID().equals(player.getUUID())
                 && !entity.isInvisibleTo(player)
                 && player.distanceToSqr(entity) < maxRange * maxRange
                 && frustum.isVisible(entity.getBoundingBox())
-                && isUnobstructed(level, (LivingEntity) entity)
-                && (deltaMouseX == 0 || delta == deltaMouseX);
+                && isUnobstructed(level, (LivingEntity) entity);
 
         if (target != null) {
             valid = valid

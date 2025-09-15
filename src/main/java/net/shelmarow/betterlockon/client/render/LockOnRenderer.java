@@ -5,20 +5,19 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.shelmarow.betterlockon.BetterLockOn;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import yesman.epicfight.client.gui.EntityUI;
+import yesman.epicfight.client.gui.EntityIndicator;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 @OnlyIn(Dist.CLIENT)
-public class LockOnRenderer extends EntityUI {
+public class LockOnRenderer extends EntityIndicator {
     private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/lock_on_background.png");
     private static final ResourceLocation OVERLAY = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/lock_on_overlay.png");
     private static final ResourceLocation RING = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/lock_on_ring.png");
@@ -28,7 +27,7 @@ public class LockOnRenderer extends EntityUI {
     private static float staminaRatio = 0F;
 
     @Override
-    public boolean shouldDraw(LivingEntity entity, @Nullable LivingEntityPatch<?> livingEntityPatch, LocalPlayerPatch playerpatch, float v) {
+    public boolean shouldDraw(LivingEntity entity, @Nullable LivingEntityPatch<?> livingEntityPatch, LocalPlayerPatch playerpatch) {
         LivingEntity target = playerpatch.getTarget();
         if(playerpatch.isTargetLockedOn() && entity == target && !entity.isDeadOrDying()){
             healthRatio = target.getHealth()/ target.getMaxHealth();
@@ -42,8 +41,8 @@ public class LockOnRenderer extends EntityUI {
     }
 
     @Override
-    public void draw(LivingEntity entity, @Nullable LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack poseStack, MultiBufferSource buffers, float partialTicks) {
-        Matrix4f matrix = getModelViewMatrixAlignedToCamera(poseStack, entity, 0.0F,  entity.getBbHeight() * 2 / 3, 0.0F, true, partialTicks);
+    public void drawIndicator(LivingEntity entity, @Nullable LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack poseStack, MultiBufferSource buffers, float partialTicks) {
+        Matrix4f matrix = getMVMatrix(poseStack, entity, 0.0F,  entity.getBbHeight() * 2 / 3, 0.0F, true, partialTicks);
 
         // 从配置获取基础大小
         float baseSize = (float) LockOnConfig.LOCK_ON_ICON_SIZE.get().doubleValue();

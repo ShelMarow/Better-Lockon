@@ -6,7 +6,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.betterlockon.client.control.LockOnControl;
@@ -57,12 +56,12 @@ public class LocalPlayerPatchMixin {
             method = "clientTick",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/LivingEntity;isRemoved()Z",
+                    target = "Lnet/minecraft/world/entity/LivingEntity;isAlive()Z",
                     ordinal = 0
             ),
             remap = true
     )
-    private void atTargetLockedOnCheck(CallbackInfo ci) {
+    private void atTargetLockedOnCheck(LivingEvent.LivingTickEvent event, CallbackInfo ci) {
         LocalPlayerPatch playerPatch = ((LocalPlayerPatch) (Object) this);
         double maxRange = LockOnConfig.MAX_LOCK_ON_DISTANCE.get();
         if (!this.rayTarget.isAlive() || this.rayTarget.isInvisibleTo(playerPatch.getOriginal()) ||
@@ -91,23 +90,23 @@ public class LocalPlayerPatchMixin {
             method = "clientTick",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/LivingEntity;isRemoved()Z"
+                    target = "Lnet/minecraft/world/entity/LivingEntity;isAlive()Z"
             )
     )
     private boolean redirectIsRemoved(LivingEntity instance) {
-        return false;
+        return true;
     }
-    @Redirect(
-            method = "clientTick",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/LivingEntity;isInvisibleTo(Lnet/minecraft/world/entity/player/Player;)Z"
-            ),
-            remap = true
-    )
-    private boolean redirectIsInvisibleTo(LivingEntity instance, Player player) {
-        return false;
-    }
+//    @Redirect(
+//            method = "clientTick",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/world/entity/LivingEntity;isInvisibleTo(Lnet/minecraft/world/entity/player/Player;)Z"
+//            ),
+//            remap = true
+//    )
+//    private boolean redirectIsInvisibleTo(LivingEntity instance, Player player) {
+//        return false;
+//    }
     @Redirect(
             method = "clientTick",
             at = @At(
@@ -119,6 +118,7 @@ public class LocalPlayerPatchMixin {
     private double redirectDistanceToSqr(LocalPlayer instance, Entity entity) {
         return 0.0D;
     }
+
     @Redirect(
             method = "clientTick",
             at = @At(
@@ -167,7 +167,6 @@ public class LocalPlayerPatchMixin {
     /*
      * 添加软锁，开启时允许玩家小幅度自由移动视角
      */
-
     //左右
     @Redirect(
             method = "clientTick",
@@ -181,7 +180,6 @@ public class LocalPlayerPatchMixin {
         if(LockOnConfig.ENABLE_SOFT_LOCK.get()) offset = LockOnControl.getLastMovedDistanceX();
         return MathUtils.getYRotOfVector(vec) + offset;
     }
-
     @Redirect(
             method = "clientTick",
             at = @At(
@@ -196,7 +194,6 @@ public class LocalPlayerPatchMixin {
         if(LockOnConfig.ENABLE_SOFT_LOCK.get()) offset = LockOnControl.getLastMovedDistanceX();
         instance.setYRot(v - offset);
     }
-
     //上下
     @Redirect(
             method = "clientTick",
@@ -210,7 +207,6 @@ public class LocalPlayerPatchMixin {
         if(LockOnConfig.ENABLE_SOFT_LOCK.get()) offset = LockOnControl.getLastMovedDistanceY();
         return MathUtils.getXRotOfVector(vec) + offset;
     }
-
     //调整玩家头部模型角度
     @ModifyArg(
             method = "clientTick",
@@ -235,8 +231,6 @@ public class LocalPlayerPatchMixin {
             return (float) Mth.clamp(pitchDeg, -60, 60);
         }
     }
-
-
     @Redirect(
             method = "clientTick",
             at = @At(
@@ -253,7 +247,6 @@ public class LocalPlayerPatchMixin {
         }
         else return Mth.clamp(pValue, pMin, pMax);
     }
-
     @Redirect(
             method = "clientTick",
             at = @At(
@@ -274,11 +267,11 @@ public class LocalPlayerPatchMixin {
 
     //调整按下锁定键时的索敌逻辑
     @Inject(
-            method = "setLockOn",
+            method = "toggleLockOn",
             at = @At("HEAD"),
             cancellable = true
     )
-    public void setLockOn(boolean targetLockedOn, CallbackInfo ci) {
+    public void setLockOn(CallbackInfo ci) {
         LocalPlayerPatch playerPatch = ((LocalPlayerPatch) (Object) this);
         LocalPlayer localPlayer = playerPatch.getOriginal();
         LockOnControl.setLastMovedDistanceX(0);
@@ -305,7 +298,7 @@ public class LocalPlayerPatchMixin {
             EpicFightNetworkManager.sendToServer(new CPSetPlayerTarget(rayTarget.getId()));
         }
 
-        this.targetLockedOn = targetLockedOn;
+        this.targetLockedOn = !this.targetLockedOn;
         ci.cancel();
     }
 }
