@@ -229,10 +229,10 @@ public class LocalPlayerPatchMixin {
         }
         else {
             Vec3 playerEye = ((LocalPlayerPatch) (Object) this).getOriginal().getEyePosition();
-            Vec3 targetEye = this.rayTarget.getEyePosition();
+            Vec3 targetEye = this.rayTarget.position().add(0,this.rayTarget.getBbHeight()*2/3,0);
             Vec3 toTarget = targetEye.subtract(playerEye);
             double pitchDeg = MathUtils.getXRotOfVector(toTarget);
-            return (float) Mth.clamp(pitchDeg, -60, 60);
+            return (float) Mth.clamp(pitchDeg, -45, 45);
         }
     }
 

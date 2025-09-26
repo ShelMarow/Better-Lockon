@@ -1,9 +1,12 @@
 package net.shelmarow.betterlockon.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.shelmarow.betterlockon.client.render.type.LockOnIconTypes;
 
 public class LockOnConfig {
     public static final ForgeConfigSpec CLIENT_CONFIG;
+
+    public static final ForgeConfigSpec.EnumValue<LockOnIconTypes> LOCK_ON_ICON_TYPES;
 
     public static final ForgeConfigSpec.DoubleValue LOCK_ON_CHANGE_DISTANCE;
     public static final ForgeConfigSpec.DoubleValue LOCK_ON_MIN_MOUSE_SPEED;
@@ -30,6 +33,13 @@ public class LockOnConfig {
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+
+        builder.push("Lock-On Icon Type");
+
+        LOCK_ON_ICON_TYPES = builder
+                .defineEnum("lockOnIconTypes",LockOnIconTypes.DEFAULT);
+
+        builder.pop();
 
         builder.push("Lock-On Change Settings");
 
@@ -75,7 +85,7 @@ public class LockOnConfig {
 
         MAX_SOFT_ANGLE_Y = builder
                 .comment("Max soft angle y" +
-                        "Notice: pitch will limited by MIN_PITCH_WHEN_LOCK_ON config")
+                        "Notice: pitch will be limited by MIN_PITCH_WHEN_LOCK_ON config")
                 .defineInRange("maxSoftAngleY",30D,0D,120D);
 
         CHANGE_DISTANCE_MULTIPLY = builder

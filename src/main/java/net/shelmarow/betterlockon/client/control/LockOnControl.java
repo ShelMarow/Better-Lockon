@@ -228,8 +228,9 @@ public class LockOnControl {
         double maxRange = LockOnConfig.MAX_TARGET_SELECT_DISTANCE.get();
         boolean valid = (entity instanceof Mob || entity instanceof Player)
                 && entity.isAlive()
-                && !entity.getUUID().equals(player.getUUID())
                 && !entity.isInvisibleTo(player)
+                && !entity.getUUID().equals(player.getUUID())
+                && player.canAttack(target,TargetingConditions.forCombat())
                 && player.distanceToSqr(entity) < maxRange * maxRange
                 && frustum.isVisible(entity.getBoundingBox())
                 && isUnobstructed(level, (LivingEntity) entity)

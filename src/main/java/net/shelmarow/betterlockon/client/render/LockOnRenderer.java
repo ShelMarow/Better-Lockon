@@ -8,6 +8,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.shelmarow.betterlockon.BetterLockOn;
+import net.shelmarow.betterlockon.client.render.type.DefaultType;
+import net.shelmarow.betterlockon.client.render.type.IconType;
+import net.shelmarow.betterlockon.client.render.type.RPGType1;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -18,11 +21,6 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 @OnlyIn(Dist.CLIENT)
 public class LockOnRenderer extends EntityUI {
-    private static final ResourceLocation BACKGROUND = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/lock_on_background.png");
-    private static final ResourceLocation OVERLAY = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/lock_on_overlay.png");
-    private static final ResourceLocation RING = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/lock_on_ring.png");
-    private static final ResourceLocation STAMINA = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/lock_on_stamina.png");
-
     private static float healthRatio = 1F;
     private static float staminaRatio = 0F;
 
@@ -93,22 +91,28 @@ public class LockOnRenderer extends EntityUI {
         return baseSize * scaleFactor;
     }
 
-    private void renderLockOn(MultiBufferSource buffers, Matrix4f matrix, float max, float min,
-                              float r, float g, float b, float alpha) {
+    private void renderLockOn(MultiBufferSource buffers, Matrix4f matrix, float max, float min,float r, float g, float b, float alpha) {
+
+
+        IconType iconType;
+        switch (LockOnConfig.LOCK_ON_ICON_TYPES.get()){
+            case RPG_TYPE1 -> iconType = new RPGType1();
+            default-> iconType = new DefaultType();
+        }
 
         //渲染背景
-        VertexConsumer vc = buffers.getBuffer(LockOnRenderTypes.getLockOnQuads(LockOnRenderer.BACKGROUND));
+        VertexConsumer vc = buffers.getBuffer(LockOnRenderTypes.getLockOnQuads(iconType.getBackground()));
         vc.vertex(matrix, min, min, 0).uv(0, 1).color(r, g, b, alpha).endVertex();
         vc.vertex(matrix, max, min, 0).uv(1, 1).color(r, g, b, alpha).endVertex();
         vc.vertex(matrix, max, max, 0).uv(1, 0).color(r, g, b, alpha).endVertex();
         vc.vertex(matrix, min, max, 0).uv(0, 0).color(r, g, b, alpha).endVertex();
 
-        //渲染血量（圆形）
+        //渲染血量（根据类型内的角度）
         int segments = 100;
-        vc = buffers.getBuffer(LockOnRenderTypes.getLockOnTriangleFan(LockOnRenderer.RING));
+        vc = buffers.getBuffer(LockOnRenderTypes.getLockOnTriangleFan(iconType.getHealth()));
         vc.vertex(matrix, 0, 0, 0).uv(0.5F, 0.5F).color(r, g, b, alpha).endVertex();
         for (int i = 0; i <= segments; i++) {
-            float angle = (float) ((Math.PI / 2) - (healthRatio * 2 * Math.PI) * i / segments);
+            float angle = (float) (iconType.getHealthStartAngle() - healthRatio * iconType.getHealthTotalAngle() * i / segments);
             float cos = (float) Math.cos(angle);
             float sin = (float) Math.sin(angle);
             float x = cos * max;
@@ -120,7 +124,7 @@ public class LockOnRenderer extends EntityUI {
         }
 
         //渲染耐力（半圆）
-        vc = buffers.getBuffer(LockOnRenderTypes.getLockOnTriangleFan(LockOnRenderer.STAMINA));
+        vc = buffers.getBuffer(LockOnRenderTypes.getLockOnTriangleFan(iconType.getStamina()));
         vc.vertex(matrix, 0, 0, 0).uv(0.5F,0.5F).color(r, g, b, alpha).endVertex();
 
         for (int i = 0; i <= segments; i++) {
@@ -140,7 +144,7 @@ public class LockOnRenderer extends EntityUI {
         }
 
         //渲染遮罩
-        vc = buffers.getBuffer(LockOnRenderTypes.getLockOnQuads(LockOnRenderer.OVERLAY));
+        vc = buffers.getBuffer(LockOnRenderTypes.getLockOnQuads(iconType.getOverlay()));
         vc.vertex(matrix, min, min, 0).uv(0, 1).color(r, g, b, alpha).endVertex();
         vc.vertex(matrix, max, min, 0).uv(1, 1).color(r, g, b, alpha).endVertex();
         vc.vertex(matrix, max, max, 0).uv(1, 0).color(r, g, b, alpha).endVertex();

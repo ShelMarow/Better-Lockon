@@ -75,16 +75,15 @@ mixin {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation fg.deobf('libs:epicfight:20.12.5')
-    //implementation fg.deobf('libs:epicfight:20.9.7')
     implementation fg.deobf("libs:oculus:1.8.0")
     implementation fg.deobf("libs:embeddium:0.3.31")
-    //implementation fg.deobf("libs:rpgcombat:1.0.0")
+    implementation fg.deobf("libs:afterdark:1.0.0")
     implementation fg.deobf("libs:dummmmmmy:2.0.6")
     implementation fg.deobf("libs:moonlight:2.14.1")
     compileOnly("libs:clothconfig:11.1.136")
     compileOnly("libs:architectury:9.2.14")
     compileOnly("libs:leawindthirdperson:2.2.0")
-    //implementation fg.deobf("libs:ShoulderSurfing:4.14.1")
+    compileOnly("libs:ShoulderSurfing:4.14.1")
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
