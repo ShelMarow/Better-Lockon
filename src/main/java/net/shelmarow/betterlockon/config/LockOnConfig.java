@@ -1,38 +1,38 @@
 package net.shelmarow.betterlockon.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.shelmarow.betterlockon.client.render.type.LockOnIconTypes;
 
 public class LockOnConfig {
-    public static final ForgeConfigSpec CLIENT_CONFIG;
+    public static final ModConfigSpec CLIENT_CONFIG;
 
-    public static final ForgeConfigSpec.EnumValue<LockOnIconTypes> LOCK_ON_ICON_TYPES;
+    public static final ModConfigSpec.EnumValue<LockOnIconTypes> LOCK_ON_ICON_TYPES;
 
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_CHANGE_DISTANCE;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_MIN_MOUSE_SPEED;
+    public static final ModConfigSpec.DoubleValue LOCK_ON_CHANGE_DISTANCE;
+    public static final ModConfigSpec.DoubleValue LOCK_ON_MIN_MOUSE_SPEED;
 
-    public static final ForgeConfigSpec.BooleanValue AUTO_SWITCH_TARGET_WHEN_DIE;
+    public static final ModConfigSpec.BooleanValue AUTO_SWITCH_TARGET_WHEN_DIE;
 
-    public static final ForgeConfigSpec.DoubleValue MAX_LOCK_ON_DISTANCE;
-    public static final ForgeConfigSpec.DoubleValue MAX_TARGET_SELECT_DISTANCE;
-    public static final ForgeConfigSpec.DoubleValue MIN_PITCH_WHEN_LOCK_ON;
-    public static final ForgeConfigSpec.DoubleValue PITCH_OFFSET_WHEN_LOCK_ON;
+    public static final ModConfigSpec.DoubleValue MAX_LOCK_ON_DISTANCE;
+    public static final ModConfigSpec.DoubleValue MAX_TARGET_SELECT_DISTANCE;
+    public static final ModConfigSpec.DoubleValue MIN_PITCH_WHEN_LOCK_ON;
+    public static final ModConfigSpec.DoubleValue PITCH_OFFSET_WHEN_LOCK_ON;
 
-    public static final ForgeConfigSpec.BooleanValue ENABLE_SOFT_LOCK;
-    public static final ForgeConfigSpec.DoubleValue MAX_SOFT_ANGLE_X;
-    public static final ForgeConfigSpec.DoubleValue MAX_SOFT_ANGLE_Y;
-    public static final ForgeConfigSpec.DoubleValue CHANGE_DISTANCE_MULTIPLY;
-    public static final ForgeConfigSpec.DoubleValue CHANGE_SPEED_MULTIPLY;
+    public static final ModConfigSpec.BooleanValue ENABLE_SOFT_LOCK;
+    public static final ModConfigSpec.DoubleValue MAX_SOFT_ANGLE_X;
+    public static final ModConfigSpec.DoubleValue MAX_SOFT_ANGLE_Y;
+    public static final ModConfigSpec.DoubleValue CHANGE_DISTANCE_MULTIPLY;
+    public static final ModConfigSpec.DoubleValue CHANGE_SPEED_MULTIPLY;
 
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_ICON_SIZE;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_RED;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_GREEN;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_BLUE;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_ALPHA;
-    public static final ForgeConfigSpec.BooleanValue LOCK_ON_SIZE_SCALING;
+    public static final ModConfigSpec.DoubleValue LOCK_ON_ICON_SIZE;
+    public static final ModConfigSpec.DoubleValue LOCK_ON_RED;
+    public static final ModConfigSpec.DoubleValue LOCK_ON_GREEN;
+    public static final ModConfigSpec.DoubleValue LOCK_ON_BLUE;
+    public static final ModConfigSpec.DoubleValue LOCK_ON_ALPHA;
+    public static final ModConfigSpec.BooleanValue LOCK_ON_SIZE_SCALING;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         builder.push("Lock-On Icon Type");
 
