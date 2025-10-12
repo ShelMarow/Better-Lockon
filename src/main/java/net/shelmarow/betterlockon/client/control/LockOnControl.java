@@ -17,13 +17,14 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.shelmarow.betterlockon.BetterLockOn;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 import net.shelmarow.betterlockon.mixins.LocalPlayerPatchAccessor;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.client.CPSetPlayerTarget;
@@ -32,7 +33,7 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mod.EventBusSubscriber(modid = BetterLockOn.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+@EventBusSubscriber(modid = BetterLockOn.MOD_ID, value = Dist.CLIENT)
 public class LockOnControl {
     private static final Minecraft MC = Minecraft.getInstance();
     //开始移动的时间
@@ -51,8 +52,10 @@ public class LockOnControl {
     private static int cooldownRemaining = 0;
 
     @SubscribeEvent
-    public static void onPlayerTickEvent(TickEvent.PlayerTickEvent event) {
-        if(event.side.isClient() && MC.screen == null && MC.player != null && event.player == MC.player && MC.level != null && event.phase == TickEvent.Phase.START){
+    public static void onPlayerTickEvent(PlayerTickEvent.Pre event) {
+        final Player player = event.getEntity();
+        final boolean isClientSide = player.level().isClientSide;
+        if(isClientSide && MC.screen == null && MC.player != null && player == MC.player && MC.level != null){
 
             if (cooldownRemaining > 0) {
                 cooldownRemaining--;
@@ -223,14 +226,13 @@ public class LockOnControl {
 
 
     //整合条件
-    private static boolean canBeSeenAsTarget(Frustum frustum, LocalPlayer player, Entity entity, LivingEntity target, ClientLevel level, double deltaMouseX) {
+    private static boolean canBeSeenAsTarget(Frustum frustum, LocalPlayer player, Entity entity, @Nullable LivingEntity target, ClientLevel level, double deltaMouseX) {
         int delta = getEntitySide(player,entity);
         double maxRange = LockOnConfig.MAX_TARGET_SELECT_DISTANCE.get();
         boolean valid = (entity instanceof Mob || entity instanceof Player)
                 && entity.isAlive()
                 && !entity.isInvisibleTo(player)
                 && !entity.getUUID().equals(player.getUUID())
-                && player.canAttack(target,TargetingConditions.forCombat())
                 && player.distanceToSqr(entity) < maxRange * maxRange
                 && frustum.isVisible(entity.getBoundingBox())
                 && isUnobstructed(level, (LivingEntity) entity)
