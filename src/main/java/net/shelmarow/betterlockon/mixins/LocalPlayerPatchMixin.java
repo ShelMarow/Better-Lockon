@@ -8,7 +8,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingEvent;
 import net.shelmarow.betterlockon.client.control.LockOnControl;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 import org.spongepowered.asm.mixin.Mixin;
@@ -54,7 +53,7 @@ public class LocalPlayerPatchMixin {
 
     //修改脱落锁定的逻辑；丢失目标后尝试寻找新目标
     @Inject(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/LivingEntity;isRemoved()Z",
@@ -88,7 +87,7 @@ public class LocalPlayerPatchMixin {
     //取消原有if逻辑
     //为什么没有方法取消整个if语句，KUSO
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/LivingEntity;isRemoved()Z"
@@ -98,7 +97,7 @@ public class LocalPlayerPatchMixin {
         return false;
     }
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/LivingEntity;isInvisibleTo(Lnet/minecraft/world/entity/player/Player;)Z"
@@ -109,7 +108,7 @@ public class LocalPlayerPatchMixin {
         return false;
     }
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/player/LocalPlayer;distanceToSqr(Lnet/minecraft/world/entity/Entity;)D"
@@ -120,7 +119,7 @@ public class LocalPlayerPatchMixin {
         return 0.0D;
     }
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lyesman/epicfight/client/world/capabilites/entitypatch/player/LocalPlayerPatch;getAngleTo(Lnet/minecraft/world/entity/Entity;)D"
@@ -132,7 +131,7 @@ public class LocalPlayerPatchMixin {
 
     //调整锁定摄像机角度
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/util/Mth;clamp(FFF)F",
@@ -170,7 +169,7 @@ public class LocalPlayerPatchMixin {
 
     //左右
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lyesman/epicfight/api/utils/math/MathUtils;getYRotOfVector(Lnet/minecraft/world/phys/Vec3;)D"
@@ -183,7 +182,7 @@ public class LocalPlayerPatchMixin {
     }
 
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/player/LocalPlayer;setYRot(F)V",
@@ -199,7 +198,7 @@ public class LocalPlayerPatchMixin {
 
     //上下
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lyesman/epicfight/api/utils/math/MathUtils;getXRotOfVector(Lnet/minecraft/world/phys/Vec3;)D"
@@ -213,7 +212,7 @@ public class LocalPlayerPatchMixin {
 
     //调整玩家头部模型角度
     @ModifyArg(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/player/LocalPlayer;setXRot(F)V",
@@ -238,7 +237,7 @@ public class LocalPlayerPatchMixin {
 
 
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/util/Mth;clamp(FFF)F",
@@ -255,7 +254,7 @@ public class LocalPlayerPatchMixin {
     }
 
     @Redirect(
-            method = "clientTick",
+            method = "preTickClient",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/util/Mth;clamp(FFF)F",
