@@ -60,6 +60,9 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    maven {
+        url "https://cursemaven.com"
+    }
      flatDir {
          dir 'libs'
      }
@@ -74,12 +77,29 @@ mixin {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    implementation fg.deobf('libs:epicfight:20.12.5')
+
+    implementation fg.deobf("curse.maven:epic-fight-mod-405076:7129220-sources-7129223")
+
+    implementation fg.deobf("libs:CombatEvolution:1.0.2.1")
+    implementation fg.deobf("libs:nightfall_invade:1.0.3")
+    implementation fg.deobf('libs:cataclysm:3.16')
+    implementation fg.deobf('libs:lionfishapi:2.4')
+    implementation fg.deobf('libs:curios:5.14.1')
+
+    implementation fg.deobf('libs:epic_fight_avalon:20.12.3.2')
+    implementation fg.deobf("curse.maven:epicfight-nightfall-1307848:7102758")
+    implementation fg.deobf("libs:invincible:20.13.4.4")
+
+    implementation fg.deobf("libs:indestructible:20.13.0")
+
     implementation fg.deobf("libs:oculus:1.8.0")
     implementation fg.deobf("libs:embeddium:0.3.31")
-    implementation fg.deobf("libs:afterdark:1.0.0")
+
     implementation fg.deobf("libs:dummmmmmy:2.0.6")
     implementation fg.deobf("libs:moonlight:2.14.1")
+
+    implementation fg.deobf("libs:wom:20.2.0.1")
+
     compileOnly("libs:clothconfig:11.1.136")
     compileOnly("libs:architectury:9.2.14")
     compileOnly("libs:leawindthirdperson:2.2.0")

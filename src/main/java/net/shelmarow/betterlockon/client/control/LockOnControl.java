@@ -3,8 +3,10 @@ package net.shelmarow.betterlockon.client.control;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,12 +20,17 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.betterlockon.BetterLockOn;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 import net.shelmarow.betterlockon.mixins.LocalPlayerPatchAccessor;
+import org.jetbrains.annotations.Nullable;
+import yesman.epicfight.api.utils.math.MathUtils;
+import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.client.CPSetPlayerTarget;
@@ -49,6 +56,22 @@ public class LockOnControl {
     // 冷却时间
     private static final int maxCoolDown = 1;
     private static int cooldownRemaining = 0;
+
+    @SubscribeEvent
+    public static void movementInputUpdateEvent(MovementInputUpdateEvent event) {
+        Input input = event.getInput();
+        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
+        if (Minecraft.getInstance().options.keySprint.isDown()&& !Minecraft.getInstance().options.keyUse.isDown() && playerPatch != null && playerPatch.isTargetLockedOn()) {
+            if(input.forwardImpulse < 0){
+                input.forwardImpulse = -input.forwardImpulse;
+            }
+            if(Math.abs(input.leftImpulse) > 0){
+                input.forwardImpulse = Math.abs(input.leftImpulse);
+                input.leftImpulse = 0;
+            }
+        }
+    }
+
 
     @SubscribeEvent
     public static void onPlayerTickEvent(TickEvent.PlayerTickEvent event) {
@@ -148,11 +171,46 @@ public class LockOnControl {
 
                 LocalPlayerPatchAccessor accessor = (LocalPlayerPatchAccessor) playerPatch;
                 if(changedTarget != null){
+                    Vec3 playerPosition = MC.player.getEyePosition();
+                    Vec3 targetPosition = changedTarget.getEyePosition();
+                    Vec3 toTarget = targetPosition.subtract(playerPosition);
+                    float yaw = (float) ((float) MathUtils.getYRotOfVector(toTarget));
+                    float pitch = (float) ((float) MathUtils.getXRotOfVector(toTarget));
+
+                    Vec3 preTargetPosition = target.getEyePosition();
+                    Vec3 toPreTarget = preTargetPosition.subtract(playerPosition);
+
+                    float deltaYaw = (float) (yaw - (float) MathUtils.getYRotOfVector(toPreTarget) - lastMovedDistanceX);
+                    float deltaPitch = (float) (pitch - (float) MathUtils.getXRotOfVector(toPreTarget) - lastMovedDistanceY);
+
+
+                    double maxSoftAngleX = LockOnConfig.MAX_SOFT_ANGLE_X.get();
+                    double maxSoftAngleY = LockOnConfig.MAX_SOFT_ANGLE_Y.get();
+
+
+                    if(deltaYaw >= -maxSoftAngleX / 2F && deltaYaw <= maxSoftAngleX / 2F){
+                        lastMovedDistanceX = -deltaYaw - (deltaYaw > maxSoftAngleX / 2F ? lastMovedDistanceX : 0);
+                    }
+                    if(deltaYaw > 0 && deltaYaw > maxSoftAngleX / 2F){
+                        lastMovedDistanceX = + maxSoftAngleX / 2F;
+                    }
+                    else if(deltaYaw < 0 && deltaYaw < -maxSoftAngleX / 2F){
+                        lastMovedDistanceX = - maxSoftAngleX / 2F;
+                    }
+
+                    if(deltaPitch >= -maxSoftAngleY / 2F && deltaPitch <= maxSoftAngleY / 2F){
+                        lastMovedDistanceY = -deltaPitch - (deltaPitch > maxSoftAngleY / 2F ? lastMovedDistanceY : 0);
+                    }
+                    else if(deltaPitch > 0 && deltaPitch > maxSoftAngleY / 2F){
+                        lastMovedDistanceY = - maxSoftAngleY / 2F;
+                    }
+                    else if(deltaPitch < 0 && deltaPitch < -maxSoftAngleY / 2F){
+                        lastMovedDistanceY = + maxSoftAngleY / 2F;
+                    }
+
                     accessor.setRayTarget(changedTarget);
                     EpicFightNetworkManager.sendToServer(new CPSetPlayerTarget(changedTarget.getId()));
                     playerPatch.setLockOn(true);
-                    lastMovedDistanceX = 0;
-                    lastMovedDistanceY = 0;
                 }
             }
         }
@@ -214,8 +272,8 @@ public class LockOnControl {
         Frustum frustum = MC.levelRenderer.getFrustum();
         List<LivingEntity> livingEntities = new ArrayList<>();
         for (Entity entity : level.entitiesForRendering()) {
-            if (canBeSeenAsTarget(frustum,player,entity,target,level,deltaMouseX)) {
-                livingEntities.add((LivingEntity) entity);
+            if (entity instanceof LivingEntity livingEntity && canBeSeenAsTarget(frustum,player,livingEntity,target,level,deltaMouseX)) {
+                livingEntities.add(livingEntity);
             }
         }
         return livingEntities;
@@ -223,27 +281,43 @@ public class LockOnControl {
 
 
     //整合条件
-    private static boolean canBeSeenAsTarget(Frustum frustum, LocalPlayer player, Entity entity, LivingEntity target, ClientLevel level, double deltaMouseX) {
-        int delta = getEntitySide(player,entity);
+    private static boolean canBeSeenAsTarget(Frustum frustum, LocalPlayer player, LivingEntity entity, LivingEntity target, ClientLevel level, double deltaMouseX) {
+        int delta = getEntitySide(player, entity);
         double maxRange = LockOnConfig.MAX_TARGET_SELECT_DISTANCE.get();
-        boolean valid = (entity instanceof Mob || entity instanceof Player)
-                && entity.isAlive()
-                && !entity.isInvisibleTo(player)
-                && !entity.getUUID().equals(player.getUUID())
-                && player.canAttack(target,TargetingConditions.forCombat())
-                && player.distanceToSqr(entity) < maxRange * maxRange
-                && frustum.isVisible(entity.getBoundingBox())
-                && isUnobstructed(level, (LivingEntity) entity)
-                && (deltaMouseX == 0 || delta == deltaMouseX);
+        double distanceSqr = player.distanceToSqr(entity);
 
-        if (target != null) {
-            valid = valid
-                    && !entity.getUUID().equals(target.getUUID())
-                    && player.canAttack(target, TargetingConditions.forCombat())
-                    && target.canBeSeenAsEnemy();
+        List<? extends String> whiteList = LockOnConfig.WHITE_LIST.get();
+        List<? extends String> blackList = LockOnConfig.BLACK_LIST.get();
+
+        String id = "";
+        @Nullable ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+        if (key != null) {
+            id = key.toString();
         }
 
-        return valid;
+        //切换的目标不能是当前目标
+        if(target != null && entity.getUUID().equals(target.getUUID())) return false;
+
+        //其他条件
+        if (!entity.isAlive()) return false;
+        if (entity.isInvisibleTo(player)) return false;
+        if (entity.getUUID().equals(player.getUUID())) return false;
+        if (distanceSqr >= maxRange * maxRange) return false;
+        if (!frustum.isVisible(entity.getBoundingBox())) return false;
+        if (!isUnobstructed(level,entity)) return false;
+        if (deltaMouseX != 0 && delta != deltaMouseX) return false;
+        if(player.getVehicle() != null && entity == player.getVehicle()) return false;
+
+
+        //筛选名单
+        if(whiteList.contains(id)) return true;
+        if(blackList.contains(id)) return false;
+
+        if (entity instanceof Mob || entity instanceof Player) {
+            return player.canAttack(entity, TargetingConditions.forCombat());
+        }
+
+        return false;
     }
 
     private static int getEntitySide(LocalPlayer player, Entity entity) {
@@ -256,7 +330,7 @@ public class LockOnControl {
     }
 
     //是否被方块或实体遮挡
-    private static boolean isUnobstructed(ClientLevel level, LivingEntity entity){
+    private static boolean isUnobstructed(ClientLevel level, Entity entity){
         if (MC.player == null) return false;
 
         Camera camera = MC.gameRenderer.getMainCamera();

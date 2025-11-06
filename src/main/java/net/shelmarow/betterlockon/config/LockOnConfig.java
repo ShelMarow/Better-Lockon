@@ -1,12 +1,20 @@
 package net.shelmarow.betterlockon.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.shelmarow.betterlockon.client.render.type.LockOnIconTypes;
+
+import java.util.List;
 
 public class LockOnConfig {
     public static final ForgeConfigSpec CLIENT_CONFIG;
 
-    public static final ForgeConfigSpec.EnumValue<LockOnIconTypes> LOCK_ON_ICON_TYPES;
+    public static final ForgeConfigSpec.ConfigValue<String> LOCK_ON_ICON_TYPES;
+
+    public static final ForgeConfigSpec.DoubleValue LOCK_ON_ICON_SIZE;
+    public static final ForgeConfigSpec.DoubleValue LOCK_ON_RED;
+    public static final ForgeConfigSpec.DoubleValue LOCK_ON_GREEN;
+    public static final ForgeConfigSpec.DoubleValue LOCK_ON_BLUE;
+    public static final ForgeConfigSpec.DoubleValue LOCK_ON_ALPHA;
+    public static final ForgeConfigSpec.BooleanValue LOCK_ON_SIZE_SCALING;
 
     public static final ForgeConfigSpec.DoubleValue LOCK_ON_CHANGE_DISTANCE;
     public static final ForgeConfigSpec.DoubleValue LOCK_ON_MIN_MOUSE_SPEED;
@@ -24,20 +32,46 @@ public class LockOnConfig {
     public static final ForgeConfigSpec.DoubleValue CHANGE_DISTANCE_MULTIPLY;
     public static final ForgeConfigSpec.DoubleValue CHANGE_SPEED_MULTIPLY;
 
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_ICON_SIZE;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_RED;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_GREEN;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_BLUE;
-    public static final ForgeConfigSpec.DoubleValue LOCK_ON_ALPHA;
-    public static final ForgeConfigSpec.BooleanValue LOCK_ON_SIZE_SCALING;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> WHITE_LIST;
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACK_LIST;
+
+    public static final ForgeConfigSpec.BooleanValue FIX_WOM_ATTACK_LOCK_ON;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         builder.push("Lock-On Icon Type");
 
-        LOCK_ON_ICON_TYPES = builder
-                .defineEnum("lockOnIconTypes",LockOnIconTypes.DEFAULT);
+        LOCK_ON_ICON_TYPES = builder.define("lockOnIconTypes","DefaultType");
+
+        builder.pop();
+
+        builder.push("Lock-On UI Settings");
+
+        LOCK_ON_ICON_SIZE = builder
+                .comment("Lock-on icon base size, Default: 0.4")
+                .defineInRange("lockOnIconSize", 0.4, 0.1, 2.0);
+
+        LOCK_ON_RED = builder
+                .comment("Lock-on UI red color component Default: 1.0")
+                .defineInRange("lockOnRed", 1.0, 0.0, 1.0);
+
+        LOCK_ON_GREEN = builder
+                .comment("Lock-on UI green color component Default: 1.0")
+                .defineInRange("lockOnGreen", 1.0, 0.0, 1.0);
+
+        LOCK_ON_BLUE = builder
+                .comment("Lock-on UI blue color component Default: 1.0")
+                .defineInRange("lockOnBlue", 1.0, 0.0, 1.0);
+
+        LOCK_ON_ALPHA = builder
+                .comment("Lock-on UI alpha (transparency) component Default: 1.0")
+                .defineInRange("lockOnAlpha", 1.0, 0.0, 1.0);
+
+        LOCK_ON_SIZE_SCALING = builder
+                .comment("Enable automatic size scaling for large entities",
+                        "When enabled, lock-on UI will scale up for larger targets")
+                .define("lockOnSizeScaling", true);
 
         builder.pop();
 
@@ -98,34 +132,26 @@ public class LockOnConfig {
 
         builder.pop();
 
-        builder.push("Lock-On UI Settings");
+        builder.push("Lock-On WOM Attack Fix");
 
-        LOCK_ON_ICON_SIZE = builder
-                .comment("Lock-on icon base size, Default: 0.4")
-                .defineInRange("lockOnIconSize", 0.4, 0.1, 2.0);
-
-        LOCK_ON_RED = builder
-                .comment("Lock-on UI red color component Default: 1.0")
-                .defineInRange("lockOnRed", 1.0, 0.0, 1.0);
-
-        LOCK_ON_GREEN = builder
-                .comment("Lock-on UI green color component Default: 1.0")
-                .defineInRange("lockOnGreen", 1.0, 0.0, 1.0);
-
-        LOCK_ON_BLUE = builder
-                .comment("Lock-on UI blue color component Default: 1.0")
-                .defineInRange("lockOnBlue", 1.0, 0.0, 1.0);
-
-        LOCK_ON_ALPHA = builder
-                .comment("Lock-on UI alpha (transparency) component Default: 1.0")
-                .defineInRange("lockOnAlpha", 1.0, 0.0, 1.0);
-
-        LOCK_ON_SIZE_SCALING = builder
-                .comment("Enable automatic size scaling for large entities",
-                        "When enabled, lock-on UI will scale up for larger targets")
-                .define("lockOnSizeScaling", true);
+        FIX_WOM_ATTACK_LOCK_ON = builder
+                .comment("Fix WOM disabled lock on when attacking")
+                .define("fixWomAttackLockOn",true);
 
         builder.pop();
+
+        builder.push("Lock-On White/Black Entity List");
+
+        WHITE_LIST = builder
+                .comment("White List Living Entity (example： minecraft:zombie)")
+                .defineList("whitelist",List.of(),o -> o instanceof String);
+
+        BLACK_LIST = builder
+                .comment("Black List Living Entity (example： minecraft:zombie)")
+                .defineList("blacklist",List.of(),o -> o instanceof String);
+
+        builder.pop();
+
         CLIENT_CONFIG = builder.build();
     }
 }
