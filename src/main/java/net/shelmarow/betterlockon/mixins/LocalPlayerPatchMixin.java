@@ -340,7 +340,7 @@ public class LocalPlayerPatchMixin {
                 betterLockOn$setClosestTarget();
             }
 
-            if(ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID)) {
+            if(ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID)){
                 HandlerShoulderSurfingCompat.handlerCam();
             }
         }

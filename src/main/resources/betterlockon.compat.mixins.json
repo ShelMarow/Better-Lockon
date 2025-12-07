@@ -11,7 +11,8 @@
     "BasicMultipleAttackAnimationMixin",
     "CameraAgentMixin",
     "ClientEventHandlerMixin",
-    "EntityAgentMixin"
+    "EntityAgentMixin",
+    "ThirdPersonEventsMixin"
   ],
   "client": [
   ]

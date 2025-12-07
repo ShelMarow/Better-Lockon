@@ -15,7 +15,7 @@ public class LockOnRenderTypes extends RenderType {
 
     public static RenderType getLockOnQuads(ResourceLocation texture) {
         return RenderType.create(
-                "efn:lock_on_texture",
+                "betterlockon:lock_on_texture",
                 DefaultVertexFormat.POSITION_TEX_COLOR,
                 VertexFormat.Mode.QUADS,
                 256,
@@ -35,7 +35,7 @@ public class LockOnRenderTypes extends RenderType {
 
     public static RenderType getLockOnTriangleFan(ResourceLocation texture) {
         return RenderType.create(
-                "efn:lock_on_fan_texture",
+                "betterlockon:lock_on_fan_texture",
                 DefaultVertexFormat.POSITION_TEX_COLOR,
                 VertexFormat.Mode.TRIANGLE_FAN,
                 256,

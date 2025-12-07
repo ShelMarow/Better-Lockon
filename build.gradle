@@ -78,13 +78,8 @@ mixin {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    implementation fg.deobf("curse.maven:epic-fight-mod-405076:7129220-sources-7129223")
-
-    implementation fg.deobf("libs:CombatEvolution:1.0.2.1")
-    implementation fg.deobf("libs:nightfall_invade:1.0.3")
-    implementation fg.deobf('libs:cataclysm:3.16')
-    implementation fg.deobf('libs:lionfishapi:2.4')
-    implementation fg.deobf('libs:curios:5.14.1')
+    implementation fg.deobf("libs:epicfight:20.14.1")
+    implementation fg.deobf("libs:CombatEvolution:1.0.5.2")
 
     implementation fg.deobf('libs:epic_fight_avalon:20.12.3.2')
     implementation fg.deobf("curse.maven:epicfight-nightfall-1307848:7102758")
@@ -100,9 +95,9 @@ dependencies {
 
     implementation fg.deobf("libs:wom:20.2.0.1")
 
-    compileOnly("libs:clothconfig:11.1.136")
-    compileOnly("libs:architectury:9.2.14")
-    compileOnly("libs:leawindthirdperson:2.2.0")
+    implementation fg.deobf("libs:clothconfig:11.1.136")
+    implementation fg.deobf("libs:architectury:9.2.14")
+    implementation fg.deobf("libs:leawindthirdperson:2.2.0")
     compileOnly("libs:ShoulderSurfing:4.14.1")
 
     implementation 'org.spongepowered:mixin:0.8.5'
