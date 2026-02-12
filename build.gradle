@@ -14,7 +14,6 @@ base {
     archivesName = mod_id
 }
 
-// Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
@@ -55,6 +54,7 @@ minecraft {
             args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
         }
     }
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
@@ -78,14 +78,15 @@ mixin {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    implementation fg.deobf("libs:epicfight:20.14.1")
-    implementation fg.deobf("libs:CombatEvolution:1.0.5.2")
+    implementation fg.deobf("curse.maven:epic-fight-mod-405076:7584041-sources-7584042")
 
-    implementation fg.deobf('libs:epic_fight_avalon:20.12.3.2')
-    implementation fg.deobf("curse.maven:epicfight-nightfall-1307848:7102758")
-    implementation fg.deobf("libs:invincible:20.13.4.4")
+    compileOnly("libs:CombatEvolution:1.1.19")
 
-    implementation fg.deobf("libs:indestructible:20.13.0")
+    //implementation fg.deobf('libs:epic_fight_avalon:20.12.3.2')
+    //implementation fg.deobf("curse.maven:epicfight-nightfall-1307848:7102758")
+    //implementation fg.deobf("libs:invincible:20.13.4.4")
+
+    compileOnly("libs:indestructible:20.13.0")
 
     implementation fg.deobf("libs:oculus:1.8.0")
     implementation fg.deobf("libs:embeddium:0.3.31")
@@ -93,12 +94,12 @@ dependencies {
     implementation fg.deobf("libs:dummmmmmy:2.0.6")
     implementation fg.deobf("libs:moonlight:2.14.1")
 
-    implementation fg.deobf("libs:wom:20.2.0.1")
+    implementation fg.deobf("libs:wom:2.0.11")
 
-    implementation fg.deobf("libs:clothconfig:11.1.136")
-    implementation fg.deobf("libs:architectury:9.2.14")
-    implementation fg.deobf("libs:leawindthirdperson:2.2.0")
-    compileOnly("libs:ShoulderSurfing:4.14.1")
+    compileOnly("libs:clothconfig:11.1.136")
+    compileOnly("libs:architectury:9.2.14")
+    compileOnly("libs:leawindthirdperson:2.2.0")
+    implementation fg.deobf("libs:ShoulderSurfing:4.14.1")
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'

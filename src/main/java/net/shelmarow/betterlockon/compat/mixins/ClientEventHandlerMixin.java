@@ -5,8 +5,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import yesman.epicfight.client.ClientEngine;
-import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 
 @Mixin(value = ClientEventHandler.class,remap = false)
 public class ClientEventHandlerMixin {
@@ -19,8 +18,7 @@ public class ClientEventHandlerMixin {
             cancellable = true
     )
     private static void movementInputUpdateEvent(CallbackInfo ci){
-        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && playerPatch.isTargetLockedOn()) {
+        if (EpicFightCameraAPI.getInstance().isLockingOnTarget()) {
             ci.cancel();
         }
     }
@@ -34,8 +32,7 @@ public class ClientEventHandlerMixin {
             cancellable = true
     )
     private static void updateRotation(CallbackInfo ci){
-        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && playerPatch.isTargetLockedOn()) {
+        if (EpicFightCameraAPI.getInstance().isLockingOnTarget()) {
             ci.cancel();
         }
     }

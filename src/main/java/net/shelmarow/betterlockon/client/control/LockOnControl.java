@@ -7,7 +7,6 @@ import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -21,20 +20,13 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.betterlockon.BetterLockOn;
 import net.shelmarow.betterlockon.config.LockOnConfig;
-import net.shelmarow.betterlockon.mixins.LocalPlayerPatchAccessor;
 import org.jetbrains.annotations.Nullable;
-import yesman.epicfight.api.utils.math.MathUtils;
-import yesman.epicfight.client.ClientEngine;
-import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
-import yesman.epicfight.network.EpicFightNetworkManager;
-import yesman.epicfight.network.client.CPSetPlayerTarget;
-import yesman.epicfight.world.capabilities.EpicFightCapabilities;
+import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,26 +34,25 @@ import java.util.List;
 @Mod.EventBusSubscriber(modid = BetterLockOn.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
 public class LockOnControl {
     private static final Minecraft MC = Minecraft.getInstance();
-    //开始移动的时间
-    private static int startTick = 0;
-    //记录上一tick的坐标
-    private static double lastMouseX = 0;
-    private static double lastMouseY = 0;
-    //记录上一tick的偏移方向
-    private static double deltaMouseX = 0;
-    //累计移动的距离
-    private static double movedDistance = 0;
-    private static double lastMovedDistanceX = 0;
-    private static double lastMovedDistanceY = 0;
-    // 冷却时间
-    private static final int maxCoolDown = 1;
-    private static int cooldownRemaining = 0;
+//    //开始移动的时间
+//    private static int startTick = 0;
+//    //记录上一tick的坐标
+//    private static double lastMouseX = 0;
+//    private static double lastMouseY = 0;
+//    //记录上一tick的偏移方向
+//    private static double deltaMouseX = 0;
+//    //累计移动的距离
+//    private static double movedDistance = 0;
+//    private static double lastMovedDistanceX = 0;
+//    private static double lastMovedDistanceY = 0;
+//    // 冷却时间
+//    private static final int maxCoolDown = 1;
+//    private static int cooldownRemaining = 0;
 
     @SubscribeEvent
     public static void movementInputUpdateEvent(MovementInputUpdateEvent event) {
         Input input = event.getInput();
-        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (Minecraft.getInstance().options.keySprint.isDown()&& !Minecraft.getInstance().options.keyUse.isDown() && playerPatch != null && playerPatch.isTargetLockedOn()) {
+        if (Minecraft.getInstance().options.keySprint.isDown() && !Minecraft.getInstance().options.keyUse.isDown() && EpicFightCameraAPI.getInstance().isLockingOnTarget()) {
             if(input.forwardImpulse < 0){
                 input.forwardImpulse = -input.forwardImpulse;
             }
@@ -73,148 +64,147 @@ public class LockOnControl {
     }
 
 
-    @SubscribeEvent
-    public static void onPlayerTickEvent(TickEvent.PlayerTickEvent event) {
-        if(event.side.isClient() && MC.screen == null && MC.player != null && event.player == MC.player && MC.level != null && event.phase == TickEvent.Phase.START){
+//    @SubscribeEvent
+//    public static void onPlayerTickEvent(TickEvent.PlayerTickEvent event) {
+//        if(event.side.isClient() && MC.screen == null && MC.player != null && event.player == MC.player && MC.level != null && event.phase == TickEvent.Phase.START){
+//
+//            if (cooldownRemaining > 0) {
+//                cooldownRemaining--;
+//                lastMouseX = MC.mouseHandler.xpos();
+//                return;
+//            }
+//
+//            double currentMouseX = MC.mouseHandler.xpos();
+//            double distanceX = currentMouseX - lastMouseX;
+//            double currentDeltaMouseX = distanceX == 0 ? 0 : (distanceX > 0 ? 1 : -1);
+//            lastMovedDistanceX += Mth.wrapDegrees(distanceX/30);
+//
+//            double currentMouseY = MC.mouseHandler.ypos();
+//            double distanceY = currentMouseY - lastMouseY;
+//            lastMovedDistanceY += Mth.wrapDegrees(distanceY/30);
+//
+//            movedDistance += Math.abs(distanceX);
+//            double mouseSpeed = movedDistance / (MC.player.tickCount - startTick + 1);
+//
+//            //配置数据
+//            double changeDistance = LockOnConfig.LOCK_ON_CHANGE_DISTANCE.get();
+//            double minMoveSpeed = LockOnConfig.LOCK_ON_MIN_MOUSE_SPEED.get();
+//            double maxSoftAngleX = LockOnConfig.MAX_SOFT_ANGLE_X.get();
+//            double maxSoftAngleY = LockOnConfig.MAX_SOFT_ANGLE_Y.get();
+//            double md = LockOnConfig.CHANGE_DISTANCE_MULTIPLY.get();
+//            double ms = LockOnConfig.CHANGE_SPEED_MULTIPLY.get();
+//
+//            if(LockOnConfig.ENABLE_SOFT_LOCK.get()){
+//                minMoveSpeed *= ms;
+//                changeDistance *= md;
+//            }
+//
+//            if(lastMovedDistanceX > 0) {
+//                lastMovedDistanceX = Mth.clamp(lastMovedDistanceX, 0, maxSoftAngleX/2);
+//            }
+//            else if(lastMovedDistanceX < 0){
+//                lastMovedDistanceX = Mth.clamp(lastMovedDistanceX, -maxSoftAngleX/2, 0);
+//            }
+//
+//            if(lastMovedDistanceY > 0) {
+//                lastMovedDistanceY = Mth.clamp(lastMovedDistanceY, 0, maxSoftAngleY/2);
+//            }
+//            else if(lastMovedDistanceY < 0){
+//                lastMovedDistanceY = Mth.clamp(lastMovedDistanceY, -maxSoftAngleY/2, 0);
+//            }
+//
+//            if(currentMouseX == lastMouseX || (deltaMouseX !=0 && currentDeltaMouseX != deltaMouseX) || mouseSpeed < minMoveSpeed){
+//                movedDistance = 0;
+//                startTick = MC.player.tickCount;
+//            }
+//
+//            if (EpicFightCameraAPI.getInstance().isLockingOnTarget()){
+//                if (movedDistance >= changeDistance) {
+//                    triggerTargetChange(MC.level,currentDeltaMouseX);
+//                    movedDistance = 0;
+//                    cooldownRemaining = maxCoolDown;
+//                }
+//            }
+//            else {
+//                movedDistance = 0;
+//            }
+//
+//            deltaMouseX = currentDeltaMouseX;
+//            lastMouseX = currentMouseX;
+//            lastMouseY = currentMouseY;
+//        }
+//    }
+//
+//    public static float getLastMovedDistanceX() {
+//        return (float) lastMovedDistanceX;
+//    }
+//
+//    public static void setLastMovedDistanceX(float distance) {
+//        lastMovedDistanceX = distance;
+//    }
+//
+//    public static float getLastMovedDistanceY() {
+//        return (float) lastMovedDistanceY;
+//    }
+//
+//    public static void setLastMovedDistanceY(double lastMovedDistanceY) {
+//        LockOnControl.lastMovedDistanceY = lastMovedDistanceY;
+//    }
 
-            if (cooldownRemaining > 0) {
-                cooldownRemaining--;
-                lastMouseX = MC.mouseHandler.xpos();
-                return;
-            }
-
-            double currentMouseX = MC.mouseHandler.xpos();
-            double distanceX = currentMouseX - lastMouseX;
-            double currentDeltaMouseX = distanceX == 0 ? 0 : (distanceX > 0 ? 1 : -1);
-            lastMovedDistanceX += Mth.wrapDegrees(distanceX/30);
-
-            double currentMouseY = MC.mouseHandler.ypos();
-            double distanceY = currentMouseY - lastMouseY;
-            lastMovedDistanceY += Mth.wrapDegrees(distanceY/30);
-
-            movedDistance += Math.abs(distanceX);
-            double mouseSpeed = movedDistance / (MC.player.tickCount - startTick + 1);
-
-            //配置数据
-            double changeDistance = LockOnConfig.LOCK_ON_CHANGE_DISTANCE.get();
-            double minMoveSpeed = LockOnConfig.LOCK_ON_MIN_MOUSE_SPEED.get();
-            double maxSoftAngleX = LockOnConfig.MAX_SOFT_ANGLE_X.get();
-            double maxSoftAngleY = LockOnConfig.MAX_SOFT_ANGLE_Y.get();
-            double md = LockOnConfig.CHANGE_DISTANCE_MULTIPLY.get();
-            double ms = LockOnConfig.CHANGE_SPEED_MULTIPLY.get();
-
-            if(LockOnConfig.ENABLE_SOFT_LOCK.get()){
-                minMoveSpeed *= ms;
-                changeDistance *= md;
-            }
-
-            if(lastMovedDistanceX > 0) {
-                lastMovedDistanceX = Mth.clamp(lastMovedDistanceX, 0, maxSoftAngleX/2);
-            }
-            else if(lastMovedDistanceX < 0){
-                lastMovedDistanceX = Mth.clamp(lastMovedDistanceX, -maxSoftAngleX/2, 0);
-            }
-
-            if(lastMovedDistanceY > 0) {
-                lastMovedDistanceY = Mth.clamp(lastMovedDistanceY, 0, maxSoftAngleY/2);
-            }
-            else if(lastMovedDistanceY < 0){
-                lastMovedDistanceY = Mth.clamp(lastMovedDistanceY, -maxSoftAngleY/2, 0);
-            }
-
-            if(currentMouseX == lastMouseX || (deltaMouseX !=0 && currentDeltaMouseX != deltaMouseX) || mouseSpeed < minMoveSpeed){
-                movedDistance = 0;
-                startTick = MC.player.tickCount;
-            }
-
-            LocalPlayerPatch playerPatch = EpicFightCapabilities.getEntityPatch(MC.player, LocalPlayerPatch.class);
-            if (playerPatch != null && playerPatch.isTargetLockedOn()){
-                if (movedDistance >= changeDistance) {
-                    triggerTargetChange(MC.level,currentDeltaMouseX);
-                    movedDistance = 0;
-                    cooldownRemaining = maxCoolDown;
-                }
-            }
-            else {
-                movedDistance = 0;
-            }
-
-            deltaMouseX = currentDeltaMouseX;
-            lastMouseX = currentMouseX;
-            lastMouseY = currentMouseY;
-        }
-    }
-
-    public static float getLastMovedDistanceX() {
-        return (float) lastMovedDistanceX;
-    }
-
-    public static void setLastMovedDistanceX(float distance) {
-        lastMovedDistanceX = distance;
-    }
-
-    public static float getLastMovedDistanceY() {
-        return (float) lastMovedDistanceY;
-    }
-
-    public static void setLastMovedDistanceY(double lastMovedDistanceY) {
-        LockOnControl.lastMovedDistanceY = lastMovedDistanceY;
-    }
-
-    private static void triggerTargetChange(ClientLevel level, double deltaMouseX) {
-        LocalPlayerPatch playerPatch = EpicFightCapabilities.getEntityPatch(MC.player, LocalPlayerPatch.class);
-        if (playerPatch != null) {
-            LivingEntity target = playerPatch.getTarget();
-            if(target != null && target.isAlive()){
-                List<LivingEntity> targetList = entitiesCanBeSeen(MC.player,level,target,deltaMouseX);
-                LivingEntity changedTarget = selectBestTarget(MC.player,targetList,target);
-
-                LocalPlayerPatchAccessor accessor = (LocalPlayerPatchAccessor) playerPatch;
-                if(changedTarget != null){
-                    Vec3 playerPosition = MC.player.getEyePosition();
-                    Vec3 targetPosition = changedTarget.getEyePosition();
-                    Vec3 toTarget = targetPosition.subtract(playerPosition);
-                    float yaw = (float) ((float) MathUtils.getYRotOfVector(toTarget));
-                    float pitch = (float) ((float) MathUtils.getXRotOfVector(toTarget));
-
-                    Vec3 preTargetPosition = target.getEyePosition();
-                    Vec3 toPreTarget = preTargetPosition.subtract(playerPosition);
-
-                    float deltaYaw = (float) (yaw - (float) MathUtils.getYRotOfVector(toPreTarget) - lastMovedDistanceX);
-                    float deltaPitch = (float) (pitch - (float) MathUtils.getXRotOfVector(toPreTarget) - lastMovedDistanceY);
-
-
-                    double maxSoftAngleX = LockOnConfig.MAX_SOFT_ANGLE_X.get();
-                    double maxSoftAngleY = LockOnConfig.MAX_SOFT_ANGLE_Y.get();
-
-
-                    if(deltaYaw >= -maxSoftAngleX / 2F && deltaYaw <= maxSoftAngleX / 2F){
-                        lastMovedDistanceX = -deltaYaw - (deltaYaw > maxSoftAngleX / 2F ? lastMovedDistanceX : 0);
-                    }
-                    if(deltaYaw > 0 && deltaYaw > maxSoftAngleX / 2F){
-                        lastMovedDistanceX = + maxSoftAngleX / 2F;
-                    }
-                    else if(deltaYaw < 0 && deltaYaw < -maxSoftAngleX / 2F){
-                        lastMovedDistanceX = - maxSoftAngleX / 2F;
-                    }
-
-                    if(deltaPitch >= -maxSoftAngleY / 2F && deltaPitch <= maxSoftAngleY / 2F){
-                        lastMovedDistanceY = -deltaPitch - (deltaPitch > maxSoftAngleY / 2F ? lastMovedDistanceY : 0);
-                    }
-                    else if(deltaPitch > 0 && deltaPitch > maxSoftAngleY / 2F){
-                        lastMovedDistanceY = - maxSoftAngleY / 2F;
-                    }
-                    else if(deltaPitch < 0 && deltaPitch < -maxSoftAngleY / 2F){
-                        lastMovedDistanceY = + maxSoftAngleY / 2F;
-                    }
-
-                    accessor.setRayTarget(changedTarget);
-                    EpicFightNetworkManager.sendToServer(new CPSetPlayerTarget(changedTarget.getId()));
-                    playerPatch.setLockOn(true);
-                }
-            }
-        }
-    }
+//    private static void triggerTargetChange(ClientLevel level, double deltaMouseX) {
+//        LocalPlayerPatch playerPatch = EpicFightCapabilities.getEntityPatch(MC.player, LocalPlayerPatch.class);
+//        if (playerPatch != null) {
+//            LivingEntity target = playerPatch.getTarget();
+//            if(target != null && target.isAlive()){
+//                List<LivingEntity> targetList = entitiesCanBeSeen(MC.player,level,target,deltaMouseX);
+//                LivingEntity changedTarget = selectBestTarget(MC.player,targetList,target);
+//
+//                if(changedTarget != null){
+//                    Vec3 playerPosition = MC.player.getEyePosition();
+//                    Vec3 targetPosition = changedTarget.getEyePosition();
+//                    Vec3 toTarget = targetPosition.subtract(playerPosition);
+//                    float yaw = (float) ((float) MathUtils.getYRotOfVector(toTarget));
+//                    float pitch = (float) ((float) MathUtils.getXRotOfVector(toTarget));
+//
+//                    Vec3 preTargetPosition = target.getEyePosition();
+//                    Vec3 toPreTarget = preTargetPosition.subtract(playerPosition);
+//
+//                    float deltaYaw = (float) (yaw - (float) MathUtils.getYRotOfVector(toPreTarget) - lastMovedDistanceX);
+//                    float deltaPitch = (float) (pitch - (float) MathUtils.getXRotOfVector(toPreTarget) - lastMovedDistanceY);
+//
+//
+//                    double maxSoftAngleX = LockOnConfig.MAX_SOFT_ANGLE_X.get();
+//                    double maxSoftAngleY = LockOnConfig.MAX_SOFT_ANGLE_Y.get();
+//
+//
+//                    if(deltaYaw >= -maxSoftAngleX / 2F && deltaYaw <= maxSoftAngleX / 2F){
+//                        lastMovedDistanceX = -deltaYaw - (deltaYaw > maxSoftAngleX / 2F ? lastMovedDistanceX : 0);
+//                    }
+//                    if(deltaYaw > 0 && deltaYaw > maxSoftAngleX / 2F){
+//                        lastMovedDistanceX = + maxSoftAngleX / 2F;
+//                    }
+//                    else if(deltaYaw < 0 && deltaYaw < -maxSoftAngleX / 2F){
+//                        lastMovedDistanceX = - maxSoftAngleX / 2F;
+//                    }
+//
+//                    if(deltaPitch >= -maxSoftAngleY / 2F && deltaPitch <= maxSoftAngleY / 2F){
+//                        lastMovedDistanceY = -deltaPitch - (deltaPitch > maxSoftAngleY / 2F ? lastMovedDistanceY : 0);
+//                    }
+//                    else if(deltaPitch > 0 && deltaPitch > maxSoftAngleY / 2F){
+//                        lastMovedDistanceY = - maxSoftAngleY / 2F;
+//                    }
+//                    else if(deltaPitch < 0 && deltaPitch < -maxSoftAngleY / 2F){
+//                        lastMovedDistanceY = + maxSoftAngleY / 2F;
+//                    }
+//                        EpicFightCameraAPIAccessor accessor = (EpicFightCameraAPIAccessor) (Object) EpicFightCameraAPI.getInstance();
+//
+//                        accessor.setFocusingEntity(changedTarget);
+//                    EpicFightNetworkManager.sendToServer(new CPSetPlayerTarget(changedTarget.getId()));
+//                    EpicFightCameraAPI.getInstance().setLockOn(true);
+//                }
+//            }
+//        }
+//    }
 
     public static LivingEntity selectBestTarget(LocalPlayer player, List<LivingEntity> candidates, LivingEntity currentTarget) {
         if (candidates.isEmpty()) return null;
@@ -286,8 +276,8 @@ public class LockOnControl {
         double maxRange = LockOnConfig.MAX_TARGET_SELECT_DISTANCE.get();
         double distanceSqr = player.distanceToSqr(entity);
 
-        List<? extends String> whiteList = LockOnConfig.WHITE_LIST.get();
-        List<? extends String> blackList = LockOnConfig.BLACK_LIST.get();
+//        List<? extends String> whiteList = LockOnConfig.WHITE_LIST.get();
+//        List<? extends String> blackList = LockOnConfig.BLACK_LIST.get();
 
         String id = "";
         @Nullable ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
@@ -310,8 +300,8 @@ public class LockOnControl {
 
 
         //筛选名单
-        if(whiteList.contains(id)) return true;
-        if(blackList.contains(id)) return false;
+//        if(whiteList.contains(id)) return true;
+//        if(blackList.contains(id)) return false;
 
         if (entity instanceof Mob || entity instanceof Player) {
             return player.canAttack(entity, TargetingConditions.forCombat());

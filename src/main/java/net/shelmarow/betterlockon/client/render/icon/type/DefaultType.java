@@ -1,6 +1,7 @@
 package net.shelmarow.betterlockon.client.render.icon.type;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.shelmarow.betterlockon.BetterLockOn;
 
 public class DefaultType extends IconType{
@@ -8,6 +9,8 @@ public class DefaultType extends IconType{
     private final ResourceLocation OVERLAY = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/default/lock_on_overlay.png");
     private final ResourceLocation RING = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/default/lock_on_ring.png");
     private final ResourceLocation STAMINA = ResourceLocation.fromNamespaceAndPath(BetterLockOn.MOD_ID, "textures/hud/default/lock_on_stamina.png");
+
+    private LivingEntity entity;
 
     @Override
     public String getName() {

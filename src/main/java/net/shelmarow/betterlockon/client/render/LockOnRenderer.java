@@ -6,23 +6,21 @@ import com.nameless.indestructible.main.Indestructible;
 import com.nameless.indestructible.world.capability.Utils.IAdvancedCapability;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.ModList;
+import net.shelmarow.betterlockon.client.render.compat.CombatEvolutionCompat;
 import net.shelmarow.betterlockon.client.render.icon.IconTypeManager;
 import net.shelmarow.betterlockon.client.render.icon.type.IconType;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 import net.shelmarow.combat_evolution.CombatEvolution;
-import net.shelmarow.combat_evolution.ai.CEHumanoidPatch;
-import net.shelmarow.combat_evolution.iml.ILivingEntityData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.client.gui.EntityUI;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
-import yesman.epicfight.world.entity.ai.attribute.EpicFightAttributes;
 
 @OnlyIn(Dist.CLIENT)
 public class LockOnRenderer extends EntityUI {
@@ -32,7 +30,7 @@ public class LockOnRenderer extends EntityUI {
     @Override
     public boolean shouldDraw(LivingEntity entity, @Nullable LivingEntityPatch<?> livingEntityPatch, LocalPlayerPatch playerpatch, float v) {
         LivingEntity target = playerpatch.getTarget();
-        if(playerpatch.isTargetLockedOn() && entity == target && !entity.isDeadOrDying()){
+        if(EpicFightCameraAPI.getInstance().isLockingOnTarget() && entity == target && !entity.isDeadOrDying()){
             healthRatio = target.getHealth()/ target.getMaxHealth();
 
             staminaRatio = 0F;
@@ -45,13 +43,10 @@ public class LockOnRenderer extends EntityUI {
 
             //生物先检查CE
             if(!hasStamina && ModList.get().isLoaded(CombatEvolution.MOD_ID)) {
-                if (livingEntityPatch instanceof CEHumanoidPatch ceHumanoidPatch) {
-                    ILivingEntityData entityData = (ILivingEntityData) ceHumanoidPatch;
-                    LivingEntity original = livingEntityPatch.getOriginal();
-                    if(original.getAttributes().hasAttribute(EpicFightAttributes.MAX_STAMINA.get())) {
-                        staminaRatio = (float) (entityData.combat_evolution$getStamina(original) / original.getAttributeValue(EpicFightAttributes.MAX_STAMINA.get()));
-                        hasStamina = true;
-                    }
+                float ratio = CombatEvolutionCompat.isCEPatch(livingEntityPatch);
+                if(ratio >= 0F){
+                    staminaRatio = ratio;
+                    hasStamina = true;
                 }
             }
 
