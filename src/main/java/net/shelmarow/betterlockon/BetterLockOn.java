@@ -2,12 +2,16 @@ package net.shelmarow.betterlockon;
 
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.client.event.ComputeFovModifierEvent;
+import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.shelmarow.betterlockon.client.control.BLOCameraSetting;
 import net.shelmarow.betterlockon.client.render.LockOnRenderer;
 import net.shelmarow.betterlockon.client.screen.LockOnConfigScreen;
 import net.shelmarow.betterlockon.config.LockOnConfig;
@@ -29,5 +33,12 @@ public class BetterLockOn {
 
     private void commonSetup(final FMLCommonSetupEvent event){
         LockOnRenderer lockOnRenderer = new LockOnRenderer();
+    }
+
+    @SubscribeEvent
+    public void onFOVUpdate(ComputeFovModifierEvent event) {
+        double originalFov = event.getNewFovModifier();
+        double fovOffset = BLOCameraSetting.fovOffset;
+        event.setNewFovModifier((float) (originalFov + fovOffset));
     }
 }

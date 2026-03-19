@@ -21,6 +21,12 @@ public class ContainerOptionList extends ContainerObjectSelectionList<ContainerO
 
     public ContainerOptionList(Minecraft pMinecraft, int pWidth, int pHeight, int pY0, int pY1, int pItemHeight) {
         super(pMinecraft, pWidth, pHeight, pY0, pY1, pItemHeight);
+        this.setRenderBackground(Minecraft.getInstance().level == null);
+    }
+
+    @Override
+    protected void renderBackground(@NotNull GuiGraphics pGuiGraphics) {
+        pGuiGraphics.fillGradient(0, 0, this.width, this.height, 0x20000000, 0x40000000);
     }
 
     @Override

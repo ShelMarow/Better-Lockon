@@ -19,10 +19,10 @@ public class LockOnConfigScreen extends Screen {
     private final Screen parent;
     private ContainerOptionList optionList;
 
-    private EditBox lockOnIconSize, lockOnChangeDistance, lockOnMinMouseSpeed, maxLockOnDistance,maxTargetSelectDistance,
-            minLockOnPitch,pitchOffset, maxSoftAngleX,maxSoftAngleY,changeDistanceMultiply,changeSpeedMultiply;
-
-    private ForgeSlider lockOnIconColorRed, lockOnIconColorGreen, lockOnIconColorBlue, lockOnIconAlpha;
+    private ForgeSlider lockOnIconSize, maxLockOnDistance,maxTargetSelectDistance,
+            minLockOnPitch, maxLockOnPitch, pitchOffset, lockOnIconColorRed,
+            lockOnIconColorGreen, lockOnIconColorBlue, lockOnIconAlpha,
+            maxDynamicCameraY, maxDynamicCameraX, maxDynamicFov;
 
     public LockOnConfigScreen(Minecraft minecraft, Screen screen) {
         super(Component.translatable("screen.betterlockon.config"));
@@ -48,24 +48,31 @@ public class LockOnConfigScreen extends Screen {
                 }).bounds(0,0,100,20).build()
         ));
 
-        lockOnIconSize = addEditBox(String.valueOf(LockOnConfig.LOCK_ON_ICON_SIZE.get()));
-        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_icon_size")).addEditBox(lockOnIconSize));
+
+        lockOnIconSize = new ForgeSlider(0,0,100,20,
+                Component.empty(),Component.empty(), 0, 5, LockOnConfig.LOCK_ON_ICON_SIZE.get(),0.1,0, true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_icon_size")).addSlider(lockOnIconSize));
+
 
         lockOnIconColorRed = new ForgeSlider(0,0,100,20,
                 Component.empty(),Component.empty(),0,1,LockOnConfig.LOCK_ON_RED.get(), 0.01,0,true);
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_icon_color_red")).addSlider(lockOnIconColorRed));
 
+
         lockOnIconColorGreen = new ForgeSlider(0,0,100,20,
                 Component.empty(),Component.empty(),0,1,LockOnConfig.LOCK_ON_GREEN.get(), 0.01,0,true);
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_icon_color_green")).addSlider(lockOnIconColorGreen));
+
 
         lockOnIconColorBlue = new ForgeSlider(0,0,100,20,
                 Component.empty(),Component.empty(),0,1,LockOnConfig.LOCK_ON_BLUE.get(), 0.01,0,true);
         optionList.addEntry((new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_icon_color_blue")).addSlider(lockOnIconColorBlue)));
 
+
         lockOnIconAlpha = new ForgeSlider(0,0,100,20,
                 Component.empty(),Component.empty(),0,1,LockOnConfig.LOCK_ON_ALPHA.get(), 0.01,0,true);
         optionList.addEntry((new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_icon_alpha")).addSlider(lockOnIconAlpha)));
+
 
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_size_scale")).addButton(
                 Button.builder(Component.translatable(LockOnConfig.LOCK_ON_SIZE_SCALING.get() ? on : off),b->{
@@ -75,52 +82,63 @@ public class LockOnConfigScreen extends Screen {
                 }).bounds(0,0,100,20).build()
         ));
 
-//        lockOnChangeDistance = addEditBox(String.valueOf(LockOnConfig.LOCK_ON_CHANGE_DISTANCE.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_change_distance")).addEditBox(lockOnChangeDistance));
-//
-//        lockOnMinMouseSpeed = addEditBox(String.valueOf(LockOnConfig.LOCK_ON_MIN_MOUSE_SPEED.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_change_speed")).addEditBox(lockOnMinMouseSpeed));
-//
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.target_auto_switch")).addButton(
-//                Button.builder(Component.translatable(LockOnConfig.AUTO_SWITCH_TARGET_WHEN_DIE.get() ? on : off), (b) -> {
-//                    LockOnConfig.AUTO_SWITCH_TARGET_WHEN_DIE.set(!LockOnConfig.AUTO_SWITCH_TARGET_WHEN_DIE.get());
-//                    LockOnConfig.AUTO_SWITCH_TARGET_WHEN_DIE.save();
-//                    b.setMessage(Component.translatable(LockOnConfig.AUTO_SWITCH_TARGET_WHEN_DIE.get() ? on : off));
-//                }).bounds(0,0, 100, 20).build()
-//        ));
-//
-//        maxLockOnDistance = addEditBox(String.valueOf(LockOnConfig.MAX_LOCK_ON_DISTANCE.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_lock_on_distance")).addEditBox(maxLockOnDistance));
-//
-        maxTargetSelectDistance = addEditBox(String.valueOf(LockOnConfig.MAX_TARGET_SELECT_DISTANCE.get()));
-        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_target_select_distance")).addEditBox(maxTargetSelectDistance));
-//
-//        minLockOnPitch = addEditBox(String.valueOf(LockOnConfig.MIN_PITCH_WHEN_LOCK_ON.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.min_lock_on_pitch")).addEditBox(minLockOnPitch));
-//
-//        pitchOffset = addEditBox(String.valueOf(LockOnConfig.PITCH_OFFSET_WHEN_LOCK_ON.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.pitch_offset")).addEditBox(pitchOffset));
-//
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.enable_soft_lock")).addButton(
-//                Button.builder(Component.translatable(LockOnConfig.ENABLE_SOFT_LOCK.get() ? on : off),b->{
-//                    LockOnConfig.ENABLE_SOFT_LOCK.set(!LockOnConfig.ENABLE_SOFT_LOCK.get());
-//                    LockOnConfig.ENABLE_SOFT_LOCK.save();
-//                    b.setMessage(Component.translatable(LockOnConfig.ENABLE_SOFT_LOCK.get() ? on : off));
-//                }).bounds(0,0, 100, 20).build()
-//        ));
-//
-//        maxSoftAngleX = addEditBox(String.valueOf(LockOnConfig.MAX_SOFT_ANGLE_X.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_soft_angle_x")).addEditBox(maxSoftAngleX));
-//
-//        maxSoftAngleY = addEditBox(String.valueOf(LockOnConfig.MAX_SOFT_ANGLE_Y.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_soft_angle_y")).addEditBox(maxSoftAngleY));
-//
-//        changeDistanceMultiply = addEditBox(String.valueOf(LockOnConfig.CHANGE_DISTANCE_MULTIPLY.get()));
-//        optionList.addEntry(new  ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.change_distance_multiply")).addEditBox(changeDistanceMultiply));
-//
-//        changeSpeedMultiply = addEditBox(String.valueOf(LockOnConfig.CHANGE_SPEED_MULTIPLY.get()));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.change_speed_multiply")).addEditBox(changeSpeedMultiply));
-//
+
+        maxLockOnDistance = new ForgeSlider(0,0,100,20,
+                Component.empty(),Component.empty(),0,128, LockOnConfig.MAX_LOCK_ON_DISTANCE.get(), 1,0,true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_lock_on_distance")).addSlider(maxLockOnDistance));
+
+
+        maxTargetSelectDistance = new ForgeSlider(0,0,100,20,
+                Component.empty(),Component.empty(),0,128, LockOnConfig.MAX_TARGET_SELECT_DISTANCE.get(), 1,0,true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_target_select_distance")).addSlider(maxTargetSelectDistance));
+
+
+        minLockOnPitch = new ForgeSlider(0,0,100,20,
+                Component.empty(),Component.empty(),-90,90, LockOnConfig.MAX_PITCH.get(), 1,0,true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_lock_on_pitch")).addSlider(minLockOnPitch));
+
+
+        maxLockOnPitch = new ForgeSlider(0,0,100,20,
+                Component.empty(),Component.empty(),-90,90, LockOnConfig.MIN_PITCH.get(), 1,0,true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.min_lock_on_pitch")).addSlider(maxLockOnPitch));
+
+
+        pitchOffset = new ForgeSlider(0,0,100,20,
+                Component.empty(),Component.empty(),-90,90, LockOnConfig.PITCH_OFFSET.get(), 1,0,true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.pitch_offset")).addSlider(pitchOffset));
+
+
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.enable_dynamic_camera")).addButton(
+                Button.builder(Component.translatable(LockOnConfig.ENABLE_DYNAMIC_CAMERA.get() ? on : off), (b) -> {
+                    LockOnConfig.ENABLE_DYNAMIC_CAMERA.set(!LockOnConfig.ENABLE_DYNAMIC_CAMERA.get());
+                    LockOnConfig.ENABLE_DYNAMIC_CAMERA.save();
+                    b.setMessage(Component.translatable(LockOnConfig.ENABLE_DYNAMIC_CAMERA.get() ? on : off));
+                }).bounds(0,0, 100, 20).build()
+        ));
+
+        maxDynamicCameraY = new ForgeSlider(0, 0, 100, 20,
+                Component.empty(), Component.empty(), 0, 15, LockOnConfig.MAX_DYNAMIC_CAMERA_Y.get(), 0.25, 0, true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_dynamic_camera_y")).addSlider(maxDynamicCameraY));
+
+        maxDynamicCameraX = new ForgeSlider(0, 0, 100, 20,
+                Component.empty(), Component.empty(), 0, 15, LockOnConfig.MAX_DYNAMIC_CAMERA_X.get(), 0.25, 0, true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_dynamic_camera_x")).addSlider(maxDynamicCameraX));
+
+
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.enable_dynamic_fov")).addButton(
+                Button.builder(Component.translatable(LockOnConfig.ENABLE_DYNAMIC_FOV.get() ? on : off), (b) -> {
+                    LockOnConfig.ENABLE_DYNAMIC_FOV.set(!LockOnConfig.ENABLE_DYNAMIC_FOV.get());
+                    LockOnConfig.ENABLE_DYNAMIC_FOV.save();
+                    b.setMessage(Component.translatable(LockOnConfig.ENABLE_DYNAMIC_FOV.get() ? on : off));
+                }).bounds(0,0, 100, 20).build()
+        ));
+
+        maxDynamicFov = new ForgeSlider(0, 0, 100, 20,
+                Component.empty(), Component.empty(), 1D, 2D, LockOnConfig.MAX_FOV_MULTIPLIER.get(), 0.01D, 0, true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_dynamic_fov")).addSlider(maxDynamicFov));
+
+
+
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.fix_wom_lockon")).addButton(
                 Button.builder(Component.translatable(LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.get() ? on : off), (b) -> {
                     LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.set(!LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.get());
@@ -128,17 +146,20 @@ public class LockOnConfigScreen extends Screen {
                     b.setMessage(Component.translatable(LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.get() ? on : off));
                 }).bounds(0,0, 100, 20).build()
         ));
-//
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.white_list")));
-//        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.black_list")));
 
         this.addWidget(this.optionList);
 
         this.addRenderableWidget(
                 Button.builder(Component.translatable("screen.betterlockon.config.confirm"),b->{
                     applyChange();
-                    onClose();
+                    //onClose();
                 }).bounds(width / 2 + 60,height - 30, 100, 20).build()
+        );
+
+        this.addRenderableWidget(
+                Button.builder(Component.translatable("screen.betterlockon.config.reset"),b->{
+                    resetChange();
+                }).bounds(width / 2 - 50,height - 30, 100, 20).build()
         );
 
         this.addRenderableWidget(
@@ -155,6 +176,18 @@ public class LockOnConfigScreen extends Screen {
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
     }
 
+    @Override
+    public void onClose() {
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
+        }
+    }
+
+    @Override
+    public boolean isPauseScreen(){
+        return false;
+    }
+
     public EditBox addEditBox(String value) {
         EditBox editBox = new EditBox(font,0,0,100,20,Component.empty());
         editBox.setFilter(s -> s.matches("\\d*(\\.\\d*)?"));
@@ -163,31 +196,60 @@ public class LockOnConfigScreen extends Screen {
     }
 
     public void applyChange(){
-        LockOnConfig.LOCK_ON_ICON_SIZE.set(Double.parseDouble(lockOnIconSize.getValue()));
+        LockOnConfig.LOCK_ON_ICON_SIZE.set(lockOnIconSize.getValue());
         LockOnConfig.LOCK_ON_RED.set(lockOnIconColorRed.getValue());
         LockOnConfig.LOCK_ON_GREEN.set(lockOnIconColorGreen.getValue());
         LockOnConfig.LOCK_ON_BLUE.set(lockOnIconColorBlue.getValue());
         LockOnConfig.LOCK_ON_ALPHA.set(lockOnIconAlpha.getValue());
 
-//        LockOnConfig.LOCK_ON_CHANGE_DISTANCE.set(Double.parseDouble(lockOnChangeDistance.getValue()));
-//        LockOnConfig.LOCK_ON_MIN_MOUSE_SPEED.set(Double.parseDouble(lockOnMinMouseSpeed.getValue()));
-//
-//        LockOnConfig.MAX_LOCK_ON_DISTANCE.set(Double.parseDouble(maxLockOnDistance.getValue()));
-        LockOnConfig.MAX_TARGET_SELECT_DISTANCE.set(Double.parseDouble(maxTargetSelectDistance.getValue()));
-//        LockOnConfig.MIN_PITCH_WHEN_LOCK_ON.set(Double.parseDouble(minLockOnPitch.getValue()));
-//        LockOnConfig.PITCH_OFFSET_WHEN_LOCK_ON.set(Double.parseDouble(pitchOffset.getValue()));
-//
-//        LockOnConfig.MAX_SOFT_ANGLE_X.set(Double.parseDouble(maxSoftAngleX.getValue()));
-//        LockOnConfig.MAX_SOFT_ANGLE_Y.set(Double.parseDouble(maxSoftAngleY.getValue()));
-//        LockOnConfig.CHANGE_DISTANCE_MULTIPLY.set(Double.parseDouble(changeDistanceMultiply.getValue()));
-//        LockOnConfig.CHANGE_SPEED_MULTIPLY.set(Double.parseDouble(changeSpeedMultiply.getValue()));
+
+        double maxLockOnDistance = this.maxLockOnDistance.getValue();
+        double maxTargetSelectDistance = this.maxTargetSelectDistance.getValue();
+        if(maxTargetSelectDistance > maxLockOnDistance){
+            maxLockOnDistance = maxTargetSelectDistance;
+        }
+        LockOnConfig.MAX_LOCK_ON_DISTANCE.set(maxLockOnDistance);
+        LockOnConfig.MAX_TARGET_SELECT_DISTANCE.set(maxTargetSelectDistance);
+
+        double minLockOnPitchValue = minLockOnPitch.getValue();
+        double maxLockOnPitchValue = maxLockOnPitch.getValue();
+        if(minLockOnPitchValue > maxLockOnPitchValue){
+            minLockOnPitchValue = maxLockOnPitchValue;
+        }
+        LockOnConfig.MAX_PITCH.set(minLockOnPitchValue);
+        LockOnConfig.MIN_PITCH.set(maxLockOnPitchValue);
+
+        LockOnConfig.PITCH_OFFSET.set(pitchOffset.getValue());
+
+        LockOnConfig.MAX_DYNAMIC_CAMERA_Y.set(maxDynamicCameraY.getValue());
+        LockOnConfig.MAX_DYNAMIC_CAMERA_X.set(maxDynamicCameraX.getValue());
+
+        LockOnConfig.MAX_FOV_MULTIPLIER.set(maxDynamicFov.getValue());
 
         LockOnConfig.CLIENT_CONFIG.save();
     }
 
-    public void onClose() {
-        if (this.minecraft != null) {
-            this.minecraft.setScreen(this.parent);
-        }
+
+
+    private void resetChange() {
+        LockOnConfig.LOCK_ON_ICON_TYPES.set(LockOnConfig.LOCK_ON_ICON_TYPES.getDefault());
+        LockOnConfig.LOCK_ON_ICON_SIZE.set(LockOnConfig.LOCK_ON_ICON_SIZE.getDefault());
+        LockOnConfig.LOCK_ON_RED.set(LockOnConfig.LOCK_ON_RED.getDefault());
+        LockOnConfig.LOCK_ON_GREEN.set(LockOnConfig.LOCK_ON_GREEN.getDefault());
+        LockOnConfig.LOCK_ON_BLUE.set(LockOnConfig.LOCK_ON_BLUE.getDefault());
+        LockOnConfig.LOCK_ON_ALPHA.set(LockOnConfig.LOCK_ON_ALPHA.getDefault());
+        LockOnConfig.LOCK_ON_SIZE_SCALING.set(LockOnConfig.LOCK_ON_SIZE_SCALING.getDefault());
+        LockOnConfig.MAX_LOCK_ON_DISTANCE.set(LockOnConfig.MAX_LOCK_ON_DISTANCE.getDefault());
+        LockOnConfig.MAX_TARGET_SELECT_DISTANCE.set(LockOnConfig.MAX_TARGET_SELECT_DISTANCE.getDefault());
+        LockOnConfig.MAX_PITCH.set(LockOnConfig.MAX_PITCH.getDefault());
+        LockOnConfig.MIN_PITCH.set(LockOnConfig.MIN_PITCH.getDefault());
+        LockOnConfig.PITCH_OFFSET.set(LockOnConfig.PITCH_OFFSET.getDefault());
+        LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.set(LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.getDefault());
+        LockOnConfig.ENABLE_DYNAMIC_CAMERA.set(LockOnConfig.ENABLE_DYNAMIC_CAMERA.getDefault());
+        LockOnConfig.MAX_DYNAMIC_CAMERA_Y.set(LockOnConfig.MAX_DYNAMIC_CAMERA_Y.getDefault());
+        LockOnConfig.MAX_DYNAMIC_CAMERA_X.set(LockOnConfig.MAX_DYNAMIC_CAMERA_X.getDefault());
+        LockOnConfig.ENABLE_DYNAMIC_FOV.set(LockOnConfig.ENABLE_DYNAMIC_FOV.getDefault());
+        LockOnConfig.MAX_FOV_MULTIPLIER.set(LockOnConfig.MAX_FOV_MULTIPLIER.getDefault());
+        init();
     }
 }

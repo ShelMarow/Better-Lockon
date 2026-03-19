@@ -1,22 +1,7 @@
 package net.shelmarow.betterlockon.compat.mixins;
 
 import com.github.leawind.thirdperson.core.CameraAgent;
-import com.github.leawind.thirdperson.mixin.CameraInvoker;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.shelmarow.betterlockon.mixins.EpicFightCameraAPIAccessor;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector2d;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
-import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
-import yesman.epicfight.client.ClientEngine;
-import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
-import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 @Mixin(value = CameraAgent.class, remap = false)
 public class CameraAgentMixin {

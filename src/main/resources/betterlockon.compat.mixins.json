@@ -12,6 +12,8 @@
     "CameraAgentMixin",
     "ClientEventHandlerMixin",
     "EntityAgentMixin",
+    "ShoulderSurfingCameraMixin",
+    "ShoulderSurfingImplMixin",
     "ThirdPersonEventsMixin"
   ],
   "client": [
