@@ -13,6 +13,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
@@ -175,6 +176,7 @@ public abstract class EpicFightCameraAPIMixin {
 
         Optional<Pair<LivingEntity, Float>> next = entitiesInLevel.stream()
                 .filter(entity ->
+                        entity instanceof EnderDragon ||
                         this.predicateFocusableEntity(entity) &&
                                 (entity.getTeam() == null || entity.getTeam() != this.minecraft.player.getTeam()) &&
                                 !entity.is(this.focusingEntity) &&
@@ -208,6 +210,23 @@ public abstract class EpicFightCameraAPIMixin {
         }
         else if(!blo$isAiming && blo$aimingTick > 0){
             blo$aimingTick--;
+        }
+    }
+
+
+    @Inject(
+            method = "setLockOn",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lyesman/epicfight/api/client/camera/EpicFightCameraAPI;isTPSMode()Z"
+            ),
+            remap = false
+    )
+    private void onSetLockOn0(CallbackInfo ci){
+        if(isTPSMode() && !isLockingOnTarget()) {
+            BLOCameraSetting.fovOffset = 0;
+            BLOCameraSetting.setTransitionTick();
+            BLOCameraSetting.setTargetOffset(0,0,0);
         }
     }
 
@@ -459,15 +478,15 @@ public abstract class EpicFightCameraAPIMixin {
                 Vec3 lockEnd;
                 Vec3 lockStart;
 
-                if (tpsMode) {
-                    double toTargetDistanceSqr = localPlayer.position().distanceToSqr(this.focusingEntity.position());
-                    lockStart = MathUtils.lerpVector(localPlayer.getEyePosition(), cameraPos, (float)Mth.clampedMap(toTargetDistanceSqr, 1.0F, 18.0F, 0.2F, 1.0F));
-                    lockEnd = MathUtils.lerpVector(this.focusingEntity.getEyePosition(), this.focusingEntity.getBoundingBox().getCenter(), (float)Mth.clampedMap(toTargetDistanceSqr, 0.0F, 18.0F, 0.5F, 1.0F));
-                }
-                else {
-                    lockStart = localPlayer.getEyePosition();
-                    lockEnd = this.focusingEntity.getEyePosition();
-                }
+//                if (tpsMode) {
+//                    double toTargetDistanceSqr = localPlayer.position().distanceToSqr(this.focusingEntity.position());
+//                    lockStart = MathUtils.lerpVector(localPlayer.getEyePosition(), cameraPos, (float)Mth.clampedMap(toTargetDistanceSqr, 1.0F, 18.0F, 0.2F, 1.0F));
+//                    lockEnd = MathUtils.lerpVector(this.focusingEntity.getEyePosition(), this.focusingEntity.getBoundingBox().getCenter(), (float)Mth.clampedMap(toTargetDistanceSqr, 0.0F, 18.0F, 0.5F, 1.0F));
+//                }
+//                else {
+                lockStart = localPlayer.getEyePosition();
+                lockEnd = this.focusingEntity.getEyePosition();
+//                }
 
                 Vec3 toTarget = lockEnd.subtract(lockStart);
                 float xRot = (float)MathUtils.getXRotOfVector(toTarget);
@@ -630,7 +649,7 @@ public abstract class EpicFightCameraAPIMixin {
             camera.setRotation(yRot, xRot);
 
             Vec3 cameraOffset = Vec3.ZERO;
-            if(isLockingOnTarget()){
+            if(isLockingOnTarget() || !BLOCameraSetting.transitionFinished()){
                 cameraOffset = blo$getCameraOffset(partialTick);
             }
 
@@ -649,7 +668,6 @@ public abstract class EpicFightCameraAPIMixin {
             OpenMatrix4f.transform3v(OpenMatrix4f.createRotatorDeg(-yRot, Vec3f.Y_AXIS), relocation, relocation);
             double cameraZoom = ClientConfig.cameraZoom * 0.5D - (partialZoomTick * 0.1D);
             double hitDistance = 1.0D;
-
             Vec3 baseOffset = new Vec3(
                     relocation.x - camera.getLookVector().x() * cameraZoom + cameraOffset.x,
                     relocation.y - camera.getLookVector().y() * cameraZoom + cameraOffset.y,

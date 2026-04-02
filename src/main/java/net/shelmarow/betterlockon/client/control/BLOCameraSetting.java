@@ -189,4 +189,5 @@ public class BLOCameraSetting {
     public static boolean transitionFinished() {
         return transitionTick >= maxTransitionTick;
     }
+
 }
