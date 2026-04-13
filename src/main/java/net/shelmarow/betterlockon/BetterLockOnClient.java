@@ -6,8 +6,10 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.shelmarow.betterlockon.client.control.BLOCameraSetting;
 import net.shelmarow.betterlockon.client.render.LockOnRenderer;
 
 @Mod(value = BetterLockOn.MOD_ID, dist = Dist.CLIENT)
@@ -23,5 +25,10 @@ public class BetterLockOnClient {
     static void onClientSetup(FMLClientSetupEvent event) {
         //noinspection unused
         LockOnRenderer lockOnRenderer = new LockOnRenderer();
+    }
+
+    @SubscribeEvent
+    static void onFovUpdate(ComputeFovModifierEvent event) {
+        event.setNewFovModifier((float) (event.getNewFovModifier() + BLOCameraSetting.fovOffset));
     }
 }

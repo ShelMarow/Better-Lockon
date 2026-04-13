@@ -15,17 +15,17 @@ public class LockOnRenderTypes extends RenderType {
 
     public static RenderType getLockOnQuads(ResourceLocation texture) {
         return RenderType.create(
-                "efn:lock_on_texture",
+                "betterlockon:lock_on_texture",
                 DefaultVertexFormat.POSITION_TEX_COLOR,
                 VertexFormat.Mode.QUADS,
                 256,
                 true,
                 false,
                 CompositeState.builder()
-                        .setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+                        .setTextureState(new TextureStateShard(texture, false, false))
                         .setTransparencyState(TransparencyStateShard.TRANSLUCENT_TRANSPARENCY)
                         .setDepthTestState(DepthTestStateShard.NO_DEPTH_TEST)
-                        .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionTexColorShader))
+                        .setShaderState(new ShaderStateShard(GameRenderer::getPositionTexColorShader))
                         .setLightmapState(LightmapStateShard.NO_LIGHTMAP)
                         .setOverlayState(OverlayStateShard.NO_OVERLAY)
                         .setCullState(CullStateShard.NO_CULL)
@@ -35,17 +35,17 @@ public class LockOnRenderTypes extends RenderType {
 
     public static RenderType getLockOnTriangleFan(ResourceLocation texture) {
         return RenderType.create(
-                "efn:lock_on_fan_texture",
+                "betterlockon:lock_on_fan_texture",
                 DefaultVertexFormat.POSITION_TEX_COLOR,
                 VertexFormat.Mode.TRIANGLE_FAN,
                 256,
                 true,
                 false,
                 CompositeState.builder()
-                        .setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+                        .setTextureState(new TextureStateShard(texture, false, false))
                         .setTransparencyState(TransparencyStateShard.TRANSLUCENT_TRANSPARENCY)
                         .setDepthTestState(DepthTestStateShard.NO_DEPTH_TEST)
-                        .setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionTexColorShader))
+                        .setShaderState(new ShaderStateShard(GameRenderer::getPositionTexColorShader))
                         .setLightmapState(LightmapStateShard.NO_LIGHTMAP)
                         .setOverlayState(OverlayStateShard.NO_OVERLAY)
                         .setCullState(CullStateShard.NO_CULL)

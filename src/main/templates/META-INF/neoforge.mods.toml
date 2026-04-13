@@ -12,7 +12,7 @@ config="${mod_id}.compat.mixins.json"
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-logoFile= "../../resources/better_lock_on_logo.png"
+logoFile="better_lock_on_logo.png"
 authors="${mod_authors}"
 description='''${mod_description}'''
 
@@ -33,6 +33,6 @@ side="BOTH"
 [[dependencies.${mod_id}]]
 modId="epicfight"
 type="required"
-versionRange="[21.12.4,)"
+versionRange="[21.16.1,)"
 ordering="NONE"
 side="BOTH"
