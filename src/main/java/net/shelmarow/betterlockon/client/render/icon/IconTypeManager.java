@@ -5,12 +5,12 @@ import net.shelmarow.betterlockon.client.render.icon.type.IconType;
 import net.shelmarow.betterlockon.client.render.icon.type.RPGType1;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public class IconTypeManager {
-    private static final Set<IconType> ICON_TYPES = new HashSet<>(
+    private static final Set<IconType> ICON_TYPES = new LinkedHashSet<>(
             Set.of(new DefaultType(), new RPGType1())
     );
 
@@ -29,7 +29,9 @@ public class IconTypeManager {
         }
 
         IconType current = getIconTypeOrDefault(LockOnConfig.LOCK_ON_ICON_TYPES.get());
-        List<IconType> iconTypes = ICON_TYPES.stream().toList();
+        List<IconType> iconTypes = ICON_TYPES.stream()
+                .sorted(java.util.Comparator.comparing(IconType::getName))
+                .toList();
         int index = 0;
         for (IconType type : iconTypes) {
             if (type.getName().equals(current.getName())) {
@@ -46,10 +48,6 @@ public class IconTypeManager {
     }
 
     public static boolean deleteIconType(IconType iconType) {
-        if (ICON_TYPES.contains(iconType)) {
-            ICON_TYPES.remove(iconType);
-            return true;
-        }
-        return false;
+        return ICON_TYPES.removeIf(type -> type.getName().equals(iconType.getName()));
     }
 }
