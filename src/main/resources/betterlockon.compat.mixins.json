@@ -2,13 +2,18 @@
   "required": false,
   "minVersion": "0.8",
   "package": "net.shelmarow.betterlockon.compat.mixins",
+  "refmap": "betterlockon.refmap.json",
   "compatibilityLevel": "JAVA_21",
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
     "CameraAgentMixin",
-    "EntityAgentMixin"
+    "ClientEventHandlerMixin",
+    "EntityAgentMixin",
+    "ShoulderSurfingCameraMixin",
+    "ShoulderSurfingImplMixin",
+    "ThirdPersonEventsMixin"
   ],
   "client": [
   ]
