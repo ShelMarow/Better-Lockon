@@ -29,6 +29,6 @@ public class BetterLockOnClient {
 
     @SubscribeEvent
     static void onFovUpdate(ComputeFovModifierEvent event) {
-        event.setNewFovModifier((float) (event.getNewFovModifier() + BLOCameraSetting.fovOffset));
+        event.setNewFovModifier(event.getNewFovModifier() + BLOCameraSetting.fovOffset);
     }
 }

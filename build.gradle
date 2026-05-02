@@ -75,20 +75,17 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
-def epicFightJar = file('../epic-fight-21.16.1-mc1.21.1-neoforge.jar')
-def localLibs = fileTree(dir: 'libs', include: ['*.jar'])
 
 dependencies {
-    compileOnly files(epicFightJar)
-    localRuntime files(epicFightJar)
 
-    localRuntime localLibs
+    implementation files(
+            'libs/epic-fight-21.16.4-mc1.21.1-neoforge.jar'
+    )
 
     compileOnly files(
             'libs/architectury-13.0.8-neoforge.jar',
             'libs/cloth-config-15.0.140-neoforge.jar',
             'libs/indestructible-20.13.0.jar',
-            'libs/invincible-20.13.4.4.jar',
             'libs/leawindthirdperson-2.2.0.jar',
             'libs/ShoulderSurfing-NeoForge-1.21.1-4.22.5.jar'
     )
