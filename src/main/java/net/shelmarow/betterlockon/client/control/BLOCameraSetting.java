@@ -181,7 +181,7 @@ public class BLOCameraSetting {
         return transitionTick;
     }
 
-    public static void setTransitionTick() {
+    public static void resetTransitionTick() {
         transitionTick = 0;
     }
 

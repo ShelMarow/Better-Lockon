@@ -20,7 +20,7 @@ public class LockOnConfigScreen extends Screen {
     private ContainerOptionList optionList;
 
     private ForgeSlider lockOnIconSize, maxLockOnDistance,maxTargetSelectDistance,
-            minLockOnPitch, maxLockOnPitch, pitchOffset, lockOnIconColorRed,
+            minLockOnPitch, maxLockOnPitch, pitchOffset, rotationTransition, lockOnIconColorRed,
             lockOnIconColorGreen, lockOnIconColorBlue, lockOnIconAlpha,
             maxDynamicCameraY, maxDynamicCameraX, maxDynamicFov;
 
@@ -50,7 +50,7 @@ public class LockOnConfigScreen extends Screen {
 
 
         lockOnIconSize = new ForgeSlider(0,0,100,20,
-                Component.empty(),Component.empty(), 0, 5, LockOnConfig.LOCK_ON_ICON_SIZE.get(),0.1,0, true);
+                Component.empty(),Component.empty(), 0, 5, LockOnConfig.LOCK_ON_ICON_SIZE.get(),0.01,0, true);
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.lockon_icon_size")).addSlider(lockOnIconSize));
 
 
@@ -107,6 +107,10 @@ public class LockOnConfigScreen extends Screen {
                 Component.empty(),Component.empty(),-90,90, LockOnConfig.PITCH_OFFSET.get(), 1,0,true);
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.pitch_offset")).addSlider(pitchOffset));
 
+        rotationTransition = new ForgeSlider(0,0,100,20,
+                Component.empty(), Component.empty(), 0.1, 1, LockOnConfig.ROTATION_TRANSITION.get(), 0.01,0,true);
+        optionList.addEntry((new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.rotation_transition")).addSlider(rotationTransition)));
+
 
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.enable_dynamic_camera")).addButton(
                 Button.builder(Component.translatable(LockOnConfig.ENABLE_DYNAMIC_CAMERA.get() ? on : off), (b) -> {
@@ -136,8 +140,6 @@ public class LockOnConfigScreen extends Screen {
         maxDynamicFov = new ForgeSlider(0, 0, 100, 20,
                 Component.empty(), Component.empty(), 1D, 2D, LockOnConfig.MAX_FOV_MULTIPLIER.get(), 0.01D, 0, true);
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.max_dynamic_fov")).addSlider(maxDynamicFov));
-
-
 
         optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.fix_wom_lockon")).addButton(
                 Button.builder(Component.translatable(LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.get() ? on : off), (b) -> {
@@ -220,6 +222,7 @@ public class LockOnConfigScreen extends Screen {
         LockOnConfig.MIN_PITCH.set(maxLockOnPitchValue);
 
         LockOnConfig.PITCH_OFFSET.set(pitchOffset.getValue());
+        LockOnConfig.ROTATION_TRANSITION.set(rotationTransition.getValue());
 
         LockOnConfig.MAX_DYNAMIC_CAMERA_Y.set(maxDynamicCameraY.getValue());
         LockOnConfig.MAX_DYNAMIC_CAMERA_X.set(maxDynamicCameraX.getValue());
@@ -244,6 +247,7 @@ public class LockOnConfigScreen extends Screen {
         LockOnConfig.MAX_PITCH.set(LockOnConfig.MAX_PITCH.getDefault());
         LockOnConfig.MIN_PITCH.set(LockOnConfig.MIN_PITCH.getDefault());
         LockOnConfig.PITCH_OFFSET.set(LockOnConfig.PITCH_OFFSET.getDefault());
+        LockOnConfig.ROTATION_TRANSITION.set(LockOnConfig.ROTATION_TRANSITION.getDefault());
         LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.set(LockOnConfig.FIX_WOM_ATTACK_LOCK_ON.getDefault());
         LockOnConfig.ENABLE_DYNAMIC_CAMERA.set(LockOnConfig.ENABLE_DYNAMIC_CAMERA.getDefault());
         LockOnConfig.MAX_DYNAMIC_CAMERA_Y.set(LockOnConfig.MAX_DYNAMIC_CAMERA_Y.getDefault());

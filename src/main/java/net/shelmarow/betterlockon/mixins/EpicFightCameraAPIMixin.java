@@ -68,6 +68,7 @@ public abstract class EpicFightCameraAPIMixin {
     @Shadow private float fpvXRot;
     @Shadow private float fpvYRot;
     @Shadow private int zoomTick;
+    @Shadow private int zoomOutDelay;
     @Shadow private boolean zoomingIn;
     @Shadow private float cameraXRotO;
     @Shadow private float cameraYRotO;
@@ -107,33 +108,33 @@ public abstract class EpicFightCameraAPIMixin {
         float offset = 0;
         if (minecraft.options.keySprint.isDown() && !minecraft.options.keyUse.isDown() && minecraft.player != null) {
             Input input = minecraft.player.input;
-            float dir = 0;
-            boolean forward = input.up && !input.down;
-            boolean backward = !input.up && input.down;
-
-            if(input.left && forward) {
-                dir = 45;
+            if(input.leftImpulse > 1.0E-5F || input.hasForwardImpulse()){
+                float dir = 0;
+                boolean forward = input.up && !input.down;
+                boolean backward = !input.up && input.down;
+                if(input.left && forward) {
+                    dir = 45;
+                }
+                else if(input.left && !backward) {
+                    dir = 90;
+                }
+                else if(input.left) {
+                    dir = 135;
+                }
+                else if(input.right && forward) {
+                    dir = -45;
+                }
+                else if(input.right && !backward) {
+                    dir = -90;
+                }
+                else if(input.right) {
+                    dir = -135;
+                }
+                else if(backward) {
+                    dir = 180;
+                }
+                offset += dir;
             }
-            else if(input.left && !backward) {
-                dir = 90;
-            }
-            else if(input.left) {
-                dir = 135;
-            }
-            else if(input.right && forward) {
-                dir = -45;
-            }
-            else if(input.right && !backward) {
-                dir = -90;
-            }
-            else if(input.right) {
-                dir = -135;
-            }
-            else if(backward) {
-                dir = 180;
-            }
-
-            offset += dir;
         }
         return offset;
     }
@@ -141,6 +142,16 @@ public abstract class EpicFightCameraAPIMixin {
     @Unique
     private Vec3 blo$getCameraOffset(float partialTick) {
         return BLOCameraSetting.getCameraPos(partialTick);
+    }
+
+    @Inject(
+            method = "getForwardYRot",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    public void getForwardYRot(CallbackInfoReturnable<Float> cir) {
+        cir.cancel();
+        cir.setReturnValue(this.cameraYRot);
     }
 
     @Inject(
@@ -225,7 +236,7 @@ public abstract class EpicFightCameraAPIMixin {
     private void onSetLockOn0(CallbackInfo ci){
         if(isTPSMode() && !isLockingOnTarget()) {
             BLOCameraSetting.fovOffset = 0;
-            BLOCameraSetting.setTransitionTick();
+            BLOCameraSetting.resetTransitionTick();
             BLOCameraSetting.setTargetOffset(0,0,0);
         }
     }
@@ -241,7 +252,7 @@ public abstract class EpicFightCameraAPIMixin {
     private void onSetLockOn(CallbackInfo ci){
         this.minecraft.player.setYRot(cameraYRot);
         BLOCameraSetting.fovOffset = 0;
-        BLOCameraSetting.setTransitionTick();
+        BLOCameraSetting.resetTransitionTick();
         BLOCameraSetting.setTargetOffset(0,0,0);
     }
 
@@ -253,7 +264,7 @@ public abstract class EpicFightCameraAPIMixin {
             )
     )
     private void onSetLockOn2(EpicFightCameraAPI instance, float xRot, float yRot, boolean syncOld){
-        BLOCameraSetting.setTransitionTick();
+        BLOCameraSetting.resetTransitionTick();
         if(ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID)){
             HandlerShoulderSurfingCompat.handlerCam();
         }
@@ -330,6 +341,20 @@ public abstract class EpicFightCameraAPIMixin {
                 }
                 case USE_TICK -> {
                     blo$isAiming = playerpatch.getOriginal().getUseItemRemainingTicks() > 0;
+                    if(!isLockingOnTarget()){
+                        if (blo$isAiming) {
+                            this.zoomIn();
+                        }
+                    }
+                    if(!blo$isAiming && this.zoomingIn){
+                        if(this.zoomTick == 8){
+                            this.zoomOut(8);
+                        }
+                        else{
+                            this.zoomingIn = false;
+                            this.zoomOutDelay = 0;
+                        }
+                    }
                 }
                 case AIMING -> {
                     blo$isAiming = playerpatch.getClientAnimator().isAiming();
@@ -461,6 +486,14 @@ public abstract class EpicFightCameraAPIMixin {
             // Sync camera rotation when camera coupled to player's view
             this.cameraXRot = this.minecraft.player.getXRot();
             this.cameraYRot = this.minecraft.player.getYRot();
+
+            float aimProgress = (float) blo$aimingTick / (float) blo$maxAimingTick;
+            Vec3f relocation = new Vec3f(ClientConfig.cameraHorizontalLocation * 0.2F, ClientConfig.cameraVerticalLocation * 0.2F, 0.0F).scale(aimProgress);
+            OpenMatrix4f.transform3v(OpenMatrix4f.createRotatorDeg(-this.cameraYRot, Vec3f.Y_AXIS), relocation, relocation);
+            double cameraOffsetX = relocation.x;
+            double cameraOffsetY = relocation.y;
+            double cameraOffsetZ = relocation.z;
+            BLOCameraSetting.setTargetOffset((float) cameraOffsetX, (float) cameraOffsetY, (float) cameraOffsetZ);
         }
         else {
             @Nullable
@@ -511,7 +544,7 @@ public abstract class EpicFightCameraAPIMixin {
                             .distanceToSqr(new Vec2((float) this.focusingEntity.position().x, (float) this.focusingEntity.position().z));
 
                     float distance = Mth.sqrt(distance2D);
-                    float distanceWeight = Mth.clampedMap(distance, 0.5F, 4.0F, 0.0F, 1.0F);
+                    float distanceWeight = Mth.clampedMap(distance, 0F, 4.0F, 0.05F, 1.0F);
 
                     if(LockOnConfig.ENABLE_DYNAMIC_FOV.get()){
                         BLOCameraSetting.fovOffset = (LockOnConfig.MAX_FOV_MULTIPLIER.get().floatValue() - 1) * progress * distanceWeight;
@@ -523,7 +556,7 @@ public abstract class EpicFightCameraAPIMixin {
                     Vec3 horizontalForward = new Vec3(cameraToTarget.x, 0, cameraToTarget.z).normalize().scale(length);
 
                     distanceWeight = Mth.clampedMap(distance, 0F, 3.0F, 0.0F, 1.0F);
-                    float distanceY = (float) (this.focusingEntity.getEyePosition().y - localPlayer.getEyePosition().y) * distanceWeight;
+                    float distanceY = (float) (this.focusingEntity.getEyePosition().y - localPlayer.getEyePosition().y);// * distanceWeight;
                     distanceY = Mth.clamp(distanceY, 0, LockOnConfig.MAX_DYNAMIC_CAMERA_Y.get().floatValue()) * progress;
 
                     float aimProgress = (float) blo$aimingTick / (float) blo$maxAimingTick;
@@ -602,17 +635,15 @@ public abstract class EpicFightCameraAPIMixin {
 
             if ((playerpatch == null || !playerpatch.getEntityState().turningLocked() || playerpatch.getEntityState().lockonRotate()) &&
                     (tpsMode || this.minecraft.options.getCameraType() == CameraType.THIRD_PERSON_BACK && this.lockingOnTarget)) {
-
                 float xDelta = Mth.clamp(Mth.wrapDegrees(desiredXRot - localPlayer.getXRot()), -clamp, clamp);
-                float yDelta = Mth.wrapDegrees(desiredYRot - localPlayer.getYRot()) - blo$getOffset();
+                float yDelta = Mth.wrapDegrees(Mth.wrapDegrees(desiredYRot - localPlayer.getYRot()) - blo$getOffset());
 
                 if (isLockingOnTarget() && minecraft.options.keySprint.isDown() && !minecraft.options.keyUse.isDown()) {
                     localPlayer.setXRot(0);
                 } else{
                     localPlayer.setXRot(localPlayer.getXRot() + xDelta);
                 }
-
-                localPlayer.setYRot(localPlayer.getYRot() + yDelta);
+                localPlayer.setYRot(localPlayer.getYRot() + (yDelta) * LockOnConfig.ROTATION_TRANSITION.get().floatValue());
             }
         }
     }
@@ -730,7 +761,7 @@ public abstract class EpicFightCameraAPIMixin {
             cir.setReturnValue(event);
             return;
         }
-        else if((!BLOCameraSetting.transitionFinished() && this.minecraft.options.getCameraType() == CameraType.THIRD_PERSON_BACK) ||(this.lockingOnTarget && this.focusingEntity != null)){
+        else if((!BLOCameraSetting.transitionFinished() && this.minecraft.options.getCameraType() == CameraType.THIRD_PERSON_BACK) || (this.lockingOnTarget && this.focusingEntity != null)){
             if (this.minecraft.options.getCameraType() == CameraType.THIRD_PERSON_BACK) {
                 float xRot = Mth.rotLerp(partialTick, this.cameraXRotO, this.cameraXRot);
                 float yRot = Mth.rotLerp(partialTick, this.cameraYRotO, this.cameraYRot);

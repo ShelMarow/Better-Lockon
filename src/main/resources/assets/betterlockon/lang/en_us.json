@@ -32,5 +32,6 @@
   "screen.betterlockon.config.max_dynamic_camera_y": "Max camera height",
   "screen.betterlockon.config.max_dynamic_camera_x": "Max camera horizontal distance",
   "screen.betterlockon.config.enable_dynamic_fov": "Enable dynamic Fov(need cam)",
-  "screen.betterlockon.config.max_dynamic_fov": "Max Fov multiplier"
+  "screen.betterlockon.config.max_dynamic_fov": "Max Fov multiplier",
+  "screen.betterlockon.config.rotation_transition": "Rotation Transition Speed"
 }

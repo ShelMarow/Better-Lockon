@@ -19,6 +19,7 @@ public class LockOnConfig {
     public static final ForgeConfigSpec.DoubleValue MAX_PITCH;
     public static final ForgeConfigSpec.DoubleValue MIN_PITCH;
     public static final ForgeConfigSpec.DoubleValue PITCH_OFFSET;
+    public static final ForgeConfigSpec.DoubleValue ROTATION_TRANSITION;
 
     public static final ForgeConfigSpec.BooleanValue FIX_WOM_ATTACK_LOCK_ON;
 
@@ -84,6 +85,9 @@ public class LockOnConfig {
         PITCH_OFFSET = builder
                 .comment("Pitch offset when you lock on the target")
                         .defineInRange("pitchOffsetWhenLockOn", 15D, -90.0D, 90D);
+
+        ROTATION_TRANSITION = builder
+                .defineInRange("rotationTransition", 0.5D, 0.1D, 1D);
 
         builder.pop();
 

@@ -32,5 +32,6 @@
   "screen.betterlockon.config.max_dynamic_camera_y": "最大相机高度",
   "screen.betterlockon.config.max_dynamic_camera_x": "最大相机距离",
   "screen.betterlockon.config.enable_dynamic_fov": "动态视角场(需要动态相机)",
-  "screen.betterlockon.config.max_dynamic_fov": "最大视角场倍率"
+  "screen.betterlockon.config.max_dynamic_fov": "最大视角场倍率",
+  "screen.betterlockon.config.rotation_transition": "旋转过渡速度"
 }
