@@ -29,6 +29,12 @@ public class LockOnConfig {
     public static final ForgeConfigSpec.BooleanValue ENABLE_DYNAMIC_FOV;
     public static final ForgeConfigSpec.DoubleValue MAX_FOV_MULTIPLIER;
 
+    public static final ForgeConfigSpec.BooleanValue ENABLE_MODEL_TRANSPARENCY;
+    public static final ForgeConfigSpec.DoubleValue START_TRANSPARENCY_DISTANCE;
+    public static final ForgeConfigSpec.DoubleValue FULLY_TRANSPARENCY_DISTANCE;
+    public static final ForgeConfigSpec.BooleanValue AUTO_SWITCH_FIRST_PERSON;
+    public static final ForgeConfigSpec.DoubleValue AUTO_SWITCH_DISTANCE;
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -115,11 +121,30 @@ public class LockOnConfig {
 
         ENABLE_DYNAMIC_FOV = builder
                 .comment("Enable the dynamic fov")
-                .define("enableDynamicFov", false);
+                .define("enableDynamicFov", true);
 
         MAX_FOV_MULTIPLIER = builder
                 .comment("Max dynamic fov multiplier")
                 .defineInRange("maxFovMultiplier", 1.15D, 1D, 2D);
+
+        builder.pop();
+
+        builder.push("Third Person Camera");
+
+        ENABLE_MODEL_TRANSPARENCY = builder
+                .define("enableModelTransparency", true);
+
+        START_TRANSPARENCY_DISTANCE = builder
+                .defineInRange("startTransparencyDistance", 9D, 0D, 15D);
+
+        FULLY_TRANSPARENCY_DISTANCE = builder
+                .defineInRange("fullyTransparencyDistance", 2D, 0D, 15D);
+
+        AUTO_SWITCH_FIRST_PERSON = builder
+                .define("autoSwitchFirstPerson", false);
+
+        AUTO_SWITCH_DISTANCE = builder
+                .defineInRange("autoSwitchDistance", 1.0D, 0.0D, 10D);
 
         builder.pop();
 

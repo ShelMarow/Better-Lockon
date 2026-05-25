@@ -84,48 +84,29 @@ public class LockOnRenderer extends EntityUI {
     public void draw(LivingEntity entity, @Nullable LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack poseStack, MultiBufferSource buffers, float partialTicks) {
         Matrix4f matrix = getModelViewMatrixAlignedToCamera(poseStack, entity, 0.0F,  entity.getBbHeight() * 2 / 3, 0.0F, true, partialTicks);
 
-        // 从配置获取基础大小
         float baseSize = (float) LockOnConfig.LOCK_ON_ICON_SIZE.get().doubleValue();
-
-        // 根据实体大小智能调整尺寸
         float size = LockOnConfig.LOCK_ON_SIZE_SCALING.get() ? calculateAdjustedIconSize(baseSize, entity) : baseSize;
 
-        // 从配置获取颜色值
         float r = (float) LockOnConfig.LOCK_ON_RED.get().doubleValue();
         float g = (float) LockOnConfig.LOCK_ON_GREEN.get().doubleValue();
         float b = (float) LockOnConfig.LOCK_ON_BLUE.get().doubleValue();
         float a = (float) LockOnConfig.LOCK_ON_ALPHA.get().doubleValue();
 
-        renderLockOn(
-                buffers, matrix,
-                size/2, -size/2,
-                r, g, b, a
-        );
+        renderLockOn(buffers, matrix, size/2, -size/2, r, g, b, a);
     }
 
     private float calculateAdjustedIconSize(float baseSize, LivingEntity entity) {
-        // 获取实体的边界框尺寸
         float entityWidth = entity.getBbWidth();
         float entityHeight = entity.getBbHeight();
-
-        // 计算实体体积因子（使用最大尺寸）
         float entitySizeFactor = Math.max(entityWidth, entityHeight);
-
-        // 标准实体尺寸参考（玩家约为0.6宽，1.8高）
         final float STANDARD_ENTITY_SIZE = 1f;
-
-        // 只对大于标准尺寸的实体进行放大
         if (entitySizeFactor <= STANDARD_ENTITY_SIZE) {
             return baseSize;
         }
 
-        // 计算放大比例（使用对数缩放避免过大）
         float scaleFactor = 1.0f + (float) Math.log1p(entitySizeFactor - STANDARD_ENTITY_SIZE) * 0.5f;
-
-        // 限制最大放大倍数（避免图标过大）
-        final float MAX_SCALE = 2.0f;
+        float MAX_SCALE = 2.0f;
         scaleFactor = Math.min(scaleFactor, MAX_SCALE);
-
         return baseSize * scaleFactor;
     }
 
@@ -178,13 +159,10 @@ public class LockOnRenderer extends EntityUI {
             for (int i = 0; i <= segments; i++) {
                 float sweep = (float) (Math.PI * staminaRatio);
                 float angle = (float) (-Math.PI / 2 - sweep / 2 + sweep * i / segments);
-
                 float cos = (float) Math.cos(angle);
                 float sin = (float) Math.sin(angle);
-
                 float x = cos * max;
                 float y = sin * max;
-
                 float u = 0.5F + cos * 0.5F;
                 float v = 0.5F - sin * 0.5F;
 

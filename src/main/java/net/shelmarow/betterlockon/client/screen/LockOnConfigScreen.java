@@ -22,7 +22,8 @@ public class LockOnConfigScreen extends Screen {
     private ForgeSlider lockOnIconSize, maxLockOnDistance,maxTargetSelectDistance,
             minLockOnPitch, maxLockOnPitch, pitchOffset, rotationTransition, lockOnIconColorRed,
             lockOnIconColorGreen, lockOnIconColorBlue, lockOnIconAlpha,
-            maxDynamicCameraY, maxDynamicCameraX, maxDynamicFov;
+            maxDynamicCameraY, maxDynamicCameraX, maxDynamicFov, firstPersonSwitch,
+            startTransparency, fullyTransparency;
 
     public LockOnConfigScreen(Minecraft minecraft, Screen screen) {
         super(Component.translatable("screen.betterlockon.config"));
@@ -149,6 +150,34 @@ public class LockOnConfigScreen extends Screen {
                 }).bounds(0,0, 100, 20).build()
         ));
 
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.enable_model_transparency")).addButton(
+                Button.builder(Component.translatable(LockOnConfig.ENABLE_MODEL_TRANSPARENCY.get() ? on : off), b->{
+                    LockOnConfig.ENABLE_MODEL_TRANSPARENCY.set(!LockOnConfig.ENABLE_MODEL_TRANSPARENCY.get());
+                    LockOnConfig.ENABLE_MODEL_TRANSPARENCY.save();
+                    b.setMessage(Component.translatable(LockOnConfig.ENABLE_MODEL_TRANSPARENCY.get() ? on : off));
+                }).bounds(0,0, 100, 20).build()
+        ));
+
+        startTransparency = new ForgeSlider(0, 0, 100, 20,
+                Component.empty(), Component.empty(), 0D, 15D, LockOnConfig.START_TRANSPARENCY_DISTANCE.get(), 0.1D, 0, true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.start_transparency_distance")).addSlider(startTransparency));
+
+        fullyTransparency = new ForgeSlider(0, 0, 100, 20,
+                Component.empty(), Component.empty(), 0D, 15D, LockOnConfig.FULLY_TRANSPARENCY_DISTANCE.get(), 0.1D, 0, true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.fully_transparency_distance")).addSlider(fullyTransparency));
+
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.auto_switch_first_person")).addButton(
+                Button.builder(Component.translatable(LockOnConfig.AUTO_SWITCH_FIRST_PERSON.get() ? on : off), b->{
+                    LockOnConfig.AUTO_SWITCH_FIRST_PERSON.set(!LockOnConfig.AUTO_SWITCH_FIRST_PERSON.get());
+                    LockOnConfig.AUTO_SWITCH_FIRST_PERSON.save();
+                    b.setMessage(Component.translatable(LockOnConfig.AUTO_SWITCH_FIRST_PERSON.get() ? on : off));
+                }).bounds(0,0, 100, 20).build()
+        ));
+
+        firstPersonSwitch = new ForgeSlider(0, 0, 100, 20,
+                Component.empty(), Component.empty(), 0.1, 10, LockOnConfig.AUTO_SWITCH_DISTANCE.get(), 0.1, 0, true);
+        optionList.addEntry(new ContainerOptionList.Entry(Component.translatable("screen.betterlockon.config.auto_switch_first_person_distance")).addSlider(firstPersonSwitch));
+
         this.addWidget(this.optionList);
 
         this.addRenderableWidget(
@@ -229,6 +258,16 @@ public class LockOnConfigScreen extends Screen {
 
         LockOnConfig.MAX_FOV_MULTIPLIER.set(maxDynamicFov.getValue());
 
+        double startTransparency = this.startTransparency.getValue();
+        double fullyTransparency = this.fullyTransparency.getValue();
+        if(startTransparency < fullyTransparency){
+            startTransparency = fullyTransparency;
+        }
+        LockOnConfig.START_TRANSPARENCY_DISTANCE.set(startTransparency);
+        LockOnConfig.FULLY_TRANSPARENCY_DISTANCE.set(fullyTransparency);
+
+        LockOnConfig.AUTO_SWITCH_DISTANCE.set(firstPersonSwitch.getValue());
+
         LockOnConfig.CLIENT_CONFIG.save();
     }
 
@@ -254,6 +293,11 @@ public class LockOnConfigScreen extends Screen {
         LockOnConfig.MAX_DYNAMIC_CAMERA_X.set(LockOnConfig.MAX_DYNAMIC_CAMERA_X.getDefault());
         LockOnConfig.ENABLE_DYNAMIC_FOV.set(LockOnConfig.ENABLE_DYNAMIC_FOV.getDefault());
         LockOnConfig.MAX_FOV_MULTIPLIER.set(LockOnConfig.MAX_FOV_MULTIPLIER.getDefault());
+        LockOnConfig.ENABLE_MODEL_TRANSPARENCY.set(LockOnConfig.ENABLE_MODEL_TRANSPARENCY.getDefault());
+        LockOnConfig.START_TRANSPARENCY_DISTANCE.set(LockOnConfig.START_TRANSPARENCY_DISTANCE.getDefault());
+        LockOnConfig.FULLY_TRANSPARENCY_DISTANCE.set(LockOnConfig.FULLY_TRANSPARENCY_DISTANCE.getDefault());
+        LockOnConfig.AUTO_SWITCH_FIRST_PERSON.set(LockOnConfig.AUTO_SWITCH_FIRST_PERSON.getDefault());
+        LockOnConfig.AUTO_SWITCH_DISTANCE.set(LockOnConfig.AUTO_SWITCH_DISTANCE.getDefault());
         init();
     }
 }

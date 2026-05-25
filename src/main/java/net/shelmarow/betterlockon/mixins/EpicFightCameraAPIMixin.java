@@ -22,6 +22,7 @@ import net.minecraft.world.phys.*;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.fml.ModList;
 import net.shelmarow.betterlockon.client.control.BLOCameraSetting;
+import net.shelmarow.betterlockon.client.control.LockOnControl;
 import net.shelmarow.betterlockon.compat.HandlerShoulderSurfingCompat;
 import net.shelmarow.betterlockon.config.LockOnConfig;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -31,7 +32,9 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
@@ -57,7 +60,6 @@ import java.util.Optional;
 @Mixin(value = EpicFightCameraAPI.class, remap = false)
 public abstract class EpicFightCameraAPIMixin {
 
-    @Unique private static final float MAX_ZOOM_TICK = 8;
     @Final @Shadow private Minecraft minecraft;
     @Shadow private float cameraXRot;
     @Shadow @Nullable private HitResult crosshairHitResult;
@@ -92,13 +94,14 @@ public abstract class EpicFightCameraAPIMixin {
 
 
     //瞄准时间计算
-    @Unique public boolean blo$isAiming = false;
-    @Unique public int blo$maxAimingTick = 8;
-    @Unique public int blo$aimingTick;
+    @Unique private final float blo$maxZoomTick = 8;
+    @Unique private boolean blo$isAiming = false;
+    @Unique private int blo$maxAimingTick = 8;
+    @Unique private int blo$aimingTick;
 
     //锁定丢失延迟
-    @Unique public int blo$maxUnlockDelayTick = 60;
-    @Unique public int blo$unlockDelayTick;
+    @Unique private int blo$maxUnlockDelayTick = 60;
+    @Unique private int blo$unlockDelayTick;
 
     /*
      * 锁定跑步朝向计算
@@ -106,9 +109,9 @@ public abstract class EpicFightCameraAPIMixin {
     @Unique
     private float blo$getOffset() {
         float offset = 0;
-        if (minecraft.options.keySprint.isDown() && !minecraft.options.keyUse.isDown() && minecraft.player != null) {
+        if (isLockingOnTarget() && minecraft.options.keySprint.isDown() && !minecraft.options.keyUse.isDown() && minecraft.player != null) {
             Input input = minecraft.player.input;
-            if(input.leftImpulse > 1.0E-5F || input.hasForwardImpulse()){
+            if(Math.abs(input.leftImpulse) > 1.0E-5F || input.hasForwardImpulse()){
                 float dir = 0;
                 boolean forward = input.up && !input.down;
                 boolean backward = !input.up && input.down;
@@ -390,7 +393,6 @@ public abstract class EpicFightCameraAPIMixin {
             this.crosshairHitResult = crosshairResult;
         }
 
-
         EntityHitResult entityHitResult = ProjectileUtil.getEntityHitResult(localPlayer, cameraPos, rayEed, aabb, this::predicateFocusableEntity, entityPickRange);
         if (entityHitResult != null) {
 
@@ -517,9 +519,9 @@ public abstract class EpicFightCameraAPIMixin {
 //                    lockEnd = MathUtils.lerpVector(this.focusingEntity.getEyePosition(), this.focusingEntity.getBoundingBox().getCenter(), (float)Mth.clampedMap(toTargetDistanceSqr, 0.0F, 18.0F, 0.5F, 1.0F));
 //                }
 //                else {
+//                }
                 lockStart = localPlayer.getEyePosition();
                 lockEnd = this.focusingEntity.getEyePosition();
-//                }
 
                 Vec3 toTarget = lockEnd.subtract(lockStart);
                 float xRot = (float)MathUtils.getXRotOfVector(toTarget);
@@ -556,7 +558,7 @@ public abstract class EpicFightCameraAPIMixin {
                     Vec3 horizontalForward = new Vec3(cameraToTarget.x, 0, cameraToTarget.z).normalize().scale(length);
 
                     distanceWeight = Mth.clampedMap(distance, 0F, 3.0F, 0.0F, 1.0F);
-                    float distanceY = (float) (this.focusingEntity.getEyePosition().y - localPlayer.getEyePosition().y);// * distanceWeight;
+                    float distanceY = (float) (this.focusingEntity.getEyePosition().y - localPlayer.getEyePosition().y);
                     distanceY = Mth.clamp(distanceY, 0, LockOnConfig.MAX_DYNAMIC_CAMERA_Y.get().floatValue()) * progress;
 
                     float aimProgress = (float) blo$aimingTick / (float) blo$maxAimingTick;
@@ -656,12 +658,11 @@ public abstract class EpicFightCameraAPIMixin {
     )
     private void rewroteSetupCamera(Camera camera, float partialTick, CallbackInfoReturnable<BuildCameraTransform.Pre> cir) {
         cir.cancel();
-        EpicFightCameraAPI cameraAPI = (EpicFightCameraAPI) (Object) this;
 
+        EpicFightCameraAPI cameraAPI = (EpicFightCameraAPI) (Object) this;
         BuildCameraTransform.Pre event = new BuildCameraTransform.Pre(cameraAPI, camera, partialTick);
         if (!camera.getEntity().is(this.minecraft.player)) {
             event.cancel();
-
             cir.setReturnValue(event);
             return;
         }
@@ -672,9 +673,10 @@ public abstract class EpicFightCameraAPIMixin {
             return;
         }
 
+
         if (this.isTPSMode()) {
-            float partialZoomTick = this.zoomTick == 0 ? 0.0F : Math.min(this.zoomTick + (this.zoomingIn ? partialTick : -partialTick), MAX_ZOOM_TICK - 1);
-            float delta = ClientConfig.getCameraMode() == ClientConfig.TPSType.WHEN_AIMING ? partialZoomTick / (MAX_ZOOM_TICK - 1) : 1.0F;
+            float partialZoomTick = this.zoomTick == 0 ? 0.0F : Math.min(this.zoomTick + (this.zoomingIn ? partialTick : -partialTick), blo$maxZoomTick - 1);
+            float delta = ClientConfig.getCameraMode() == ClientConfig.TPSType.WHEN_AIMING ? partialZoomTick / (blo$maxZoomTick - 1) : 1.0F;
             float xRot = Mth.rotLerp(delta, this.minecraft.player.getXRot(), Mth.rotLerp(partialTick, this.cameraXRotO, this.cameraXRot));
             float yRot = Mth.rotLerp(delta, this.minecraft.player.getYRot(), Mth.rotLerp(partialTick, this.cameraYRotO, this.cameraYRot));
             camera.setRotation(yRot, xRot);
@@ -683,6 +685,7 @@ public abstract class EpicFightCameraAPIMixin {
             if(isLockingOnTarget() || !BLOCameraSetting.transitionFinished()){
                 cameraOffset = blo$getCameraOffset(partialTick);
             }
+
 
             Vec3 playerPos = new Vec3(
                     Mth.lerp(partialTick, camera.getEntity().xo, camera.getEntity().getX()),
@@ -758,6 +761,8 @@ public abstract class EpicFightCameraAPIMixin {
             event.setVanillaCameraSetupCanceled(true);
             this.fireCameraBuildPost(camera, partialTick);
 
+            LockOnControl.handleCamera(camera, true, isLockingOnTarget(), yRot, partialTick);
+
             cir.setReturnValue(event);
             return;
         }
@@ -821,6 +826,8 @@ public abstract class EpicFightCameraAPIMixin {
                 event.setVanillaCameraSetupCanceled(true);
                 this.fireCameraBuildPost(camera, partialTick);
 
+                LockOnControl.handleCamera(camera, false, isLockingOnTarget(), yRot, partialTick);
+
                 cir.setReturnValue(event);
                 return;
             }
@@ -833,8 +840,16 @@ public abstract class EpicFightCameraAPIMixin {
                     this.cameraXRot = camera.getEntity().getXRot();
                     this.cameraYRot = camera.getEntity().getYRot();
                 }
+
+                LockOnControl.handleCamera(camera, ClientConfig.getCameraMode() == ClientConfig.TPSType.ALWAYS, isLockingOnTarget(), camera.getEntity().getYRot(), partialTick);
+
+                cir.setReturnValue(event);
+                return;
             }
         }
+
+
+        LockOnControl.handleCamera(camera, ClientConfig.getCameraMode() == ClientConfig.TPSType.ALWAYS, isLockingOnTarget(), camera.getEntity().getYRot(), partialTick);
 
         cir.setReturnValue(event);
     }

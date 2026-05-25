@@ -8,8 +8,11 @@
     "defaultRequire": 1
   },
   "mixins": [
-    "EpicFightCameraAPIMixin"
+    "EpicFightCameraAPIMixin",
+    "PatchedLivingEntityRendererMixin",
+    "WearableItemLayerMixin"
   ],
   "client": [
+    "LocalPlayerMixin"
   ]
 }

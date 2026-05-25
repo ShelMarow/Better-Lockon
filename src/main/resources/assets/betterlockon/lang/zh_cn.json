@@ -33,5 +33,10 @@
   "screen.betterlockon.config.max_dynamic_camera_x": "最大相机距离",
   "screen.betterlockon.config.enable_dynamic_fov": "动态视角场(需要动态相机)",
   "screen.betterlockon.config.max_dynamic_fov": "最大视角场倍率",
-  "screen.betterlockon.config.rotation_transition": "旋转过渡速度"
+  "screen.betterlockon.config.rotation_transition": "旋转过渡速度",
+  "screen.betterlockon.config.enable_model_transparency": "模型透明度调整",
+  "screen.betterlockon.config.auto_switch_first_person": "自动切换第一人称",
+  "screen.betterlockon.config.auto_switch_first_person_distance": "切换距离",
+  "screen.betterlockon.config.start_transparency_distance": "透明开始距离",
+  "screen.betterlockon.config.fully_transparency_distance": "完全透明距离"
 }

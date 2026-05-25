@@ -33,5 +33,10 @@
   "screen.betterlockon.config.max_dynamic_camera_x": "Max camera horizontal distance",
   "screen.betterlockon.config.enable_dynamic_fov": "Enable dynamic Fov(need cam)",
   "screen.betterlockon.config.max_dynamic_fov": "Max Fov multiplier",
-  "screen.betterlockon.config.rotation_transition": "Rotation Transition Speed"
+  "screen.betterlockon.config.rotation_transition": "Rotation Transition Speed",
+  "screen.betterlockon.config.enable_model_transparency": "Adjust Model Transparency",
+  "screen.betterlockon.config.auto_switch_first_person": "Auto Switch First Person",
+  "screen.betterlockon.config.auto_switch_first_person_distance": "Switch Distance",
+  "screen.betterlockon.config.start_transparency_distance": "Start Transparency",
+  "screen.betterlockon.config.fully_transparency_distance": "Fully Transparency"
 }
