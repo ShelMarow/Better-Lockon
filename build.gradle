@@ -96,14 +96,13 @@ dependencies {
 
     implementation fg.deobf("libs:wom:2.0.11")
 
-    compileOnly("libs:clothconfig:11.1.136")
-    compileOnly("libs:architectury:9.2.14")
-    compileOnly("libs:leawindthirdperson:2.2.0")
+    implementation fg.deobf("libs:clothconfig:11.1.136")
+    implementation fg.deobf("libs:architectury:9.2.14")
+    implementation fg.deobf("libs:leawindthirdperson:2.2.0")
     compileOnly("libs:ShoulderSurfing:4.14.1")
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    testAnnotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     configurations.configureEach {
         resolutionStrategy {

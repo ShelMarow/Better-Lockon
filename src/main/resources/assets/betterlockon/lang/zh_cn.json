@@ -38,5 +38,8 @@
   "screen.betterlockon.config.auto_switch_first_person": "自动切换第一人称",
   "screen.betterlockon.config.auto_switch_first_person_distance": "切换距离",
   "screen.betterlockon.config.start_transparency_distance": "透明开始距离",
-  "screen.betterlockon.config.fully_transparency_distance": "完全透明距离"
+  "screen.betterlockon.config.fully_transparency_distance": "完全透明距离",
+
+  "key.betterlockon.category": "锁定优化",
+  "key.betterlockon.change_lock_on_joint": "切换锁定部位"
 }

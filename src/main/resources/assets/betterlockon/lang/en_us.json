@@ -38,5 +38,8 @@
   "screen.betterlockon.config.auto_switch_first_person": "Auto Switch First Person",
   "screen.betterlockon.config.auto_switch_first_person_distance": "Switch Distance",
   "screen.betterlockon.config.start_transparency_distance": "Start Transparency",
-  "screen.betterlockon.config.fully_transparency_distance": "Fully Transparency"
+  "screen.betterlockon.config.fully_transparency_distance": "Fully Transparency",
+
+  "key.betterlockon.category": "Better Lock On",
+  "key.betterlockon.change_lock_on_joint": "Change Joint"
 }

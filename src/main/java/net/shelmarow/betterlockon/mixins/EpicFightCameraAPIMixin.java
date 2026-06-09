@@ -1,6 +1,7 @@
 package net.shelmarow.betterlockon.mixins;
 
 import com.github.exopandora.shouldersurfing.ShoulderSurfingCommon;
+import com.github.leawind.thirdperson.ThirdPersonConstants;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
@@ -9,6 +10,8 @@ import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -21,10 +24,13 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.betterlockon.client.control.BLOCameraSetting;
 import net.shelmarow.betterlockon.client.control.LockOnControl;
+import net.shelmarow.betterlockon.compat.HandlerLeawindCompat;
 import net.shelmarow.betterlockon.compat.HandlerShoulderSurfingCompat;
 import net.shelmarow.betterlockon.config.LockOnConfig;
+import net.shelmarow.betterlockon.util.ArmatureUtil;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -37,6 +43,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import yesman.epicfight.api.animation.Joint;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.api.client.event.EpicFightClientHooks;
 import yesman.epicfight.api.client.event.types.BuildCameraTransform;
@@ -50,6 +57,7 @@ import yesman.epicfight.api.utils.math.Vec3f;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.config.ClientConfig;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
+import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 import java.util.ArrayList;
@@ -96,11 +104,11 @@ public abstract class EpicFightCameraAPIMixin {
     //瞄准时间计算
     @Unique private final float blo$maxZoomTick = 8;
     @Unique private boolean blo$isAiming = false;
-    @Unique private int blo$maxAimingTick = 8;
+    @Unique private final int blo$maxAimingTick = 8;
     @Unique private int blo$aimingTick;
 
     //锁定丢失延迟
-    @Unique private int blo$maxUnlockDelayTick = 60;
+    @Unique private final int blo$maxUnlockDelayTick = 60;
     @Unique private int blo$unlockDelayTick;
 
     /*
@@ -142,11 +150,6 @@ public abstract class EpicFightCameraAPIMixin {
         return offset;
     }
 
-    @Unique
-    private Vec3 blo$getCameraOffset(float partialTick) {
-        return BLOCameraSetting.getCameraPos(partialTick);
-    }
-
     @Inject(
             method = "getForwardYRot",
             at = @At("HEAD"),
@@ -154,6 +157,9 @@ public abstract class EpicFightCameraAPIMixin {
     )
     public void getForwardYRot(CallbackInfoReturnable<Float> cir) {
         cir.cancel();
+        if(ModList.get().isLoaded(ThirdPersonConstants.MOD_ID) && !isLockingOnTarget()){
+            cir.setReturnValue(HandlerLeawindCompat.handlerDodgeRotation(this.cameraYRot));
+        }
         cir.setReturnValue(this.cameraYRot);
     }
 
@@ -207,6 +213,9 @@ public abstract class EpicFightCameraAPIMixin {
             this.focusingEntity = pair.getFirst();
             if (sendChange) this.sendTargeting(this.focusingEntity);
         });
+        if(next.isPresent()) {
+            BLOCameraSetting.setLockonJointIndex(0);
+        }
 
         cir.setReturnValue(next.isPresent());
     }
@@ -285,6 +294,7 @@ public abstract class EpicFightCameraAPIMixin {
         if(flag && this.focusingEntity != null){
             this.focusingEntity = null;
         }
+        BLOCameraSetting.setLockonJointIndex(0);
     }
 
     @Inject(
@@ -523,6 +533,47 @@ public abstract class EpicFightCameraAPIMixin {
                 lockStart = localPlayer.getEyePosition();
                 lockEnd = this.focusingEntity.getEyePosition();
 
+                LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(this.focusingEntity, LivingEntityPatch.class);
+                if(targetPatch != null){
+                    boolean foundJoint = false;
+                    int index = BLOCameraSetting.getLockonJointIndex();
+                    CompoundTag tag = this.focusingEntity.serializeNBT();
+                    if(tag.contains("BetterLockOnJoints")){
+                        List<String> lockOnJoints = LockOnConfig.parseList(tag.getString("BetterLockOnJoints"));
+                        if(!lockOnJoints.isEmpty()){
+                            index %= lockOnJoints.size();
+                            if(index >= 0 && index < lockOnJoints.size()) {
+                                Joint joint = targetPatch.getArmature().searchJointByName(lockOnJoints.get(index));
+                                if(joint != null && joint.getId() >= 0){
+                                    lockEnd = ArmatureUtil.getJointWorldPosition(targetPatch, joint, Vec3.ZERO);
+                                    foundJoint = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if(!foundJoint){
+                        ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(this.focusingEntity.getType());
+                        if (key != null) {
+                            String id = key.toString();
+                            List<String> joints = LockOnConfig.getStringSetForEntity(id);
+
+                            if(!joints.isEmpty()){
+                                index %= joints.size();
+                                if(index >= 0 && index < joints.size()){
+                                    Joint joint = targetPatch.getArmature().searchJointByName(joints.get(index));
+                                    if(joint != null && joint.getId() >= 0){
+                                        lockEnd = ArmatureUtil.getJointWorldPosition(targetPatch, joint, Vec3.ZERO);
+                                    }
+                                }
+                                else{
+                                    BLOCameraSetting.setLockonJointIndex(0);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Vec3 toTarget = lockEnd.subtract(lockStart);
                 float xRot = (float)MathUtils.getXRotOfVector(toTarget);
                 float yRot = (float)MathUtils.getYRotOfVector(toTarget);
@@ -542,8 +593,8 @@ public abstract class EpicFightCameraAPIMixin {
                     float minXRot = -70F;
                     float progress =  Mth.clamp((maxXRot - originalXRot) / (maxXRot - minXRot), 0F, 1F);
 
-                    float distance2D = new Vec2((float) localPlayer.position().x, (float) localPlayer.position().z)
-                            .distanceToSqr(new Vec2((float) this.focusingEntity.position().x, (float) this.focusingEntity.position().z));
+                    float distance2D = new Vec2((float) lockStart.x, (float) lockStart.z)
+                            .distanceToSqr(new Vec2((float) lockEnd.x, (float) lockEnd.z));
 
                     float distance = Mth.sqrt(distance2D);
                     float distanceWeight = Mth.clampedMap(distance, 0F, 4.0F, 0.05F, 1.0F);
@@ -683,7 +734,7 @@ public abstract class EpicFightCameraAPIMixin {
 
             Vec3 cameraOffset = Vec3.ZERO;
             if(isLockingOnTarget() || !BLOCameraSetting.transitionFinished()){
-                cameraOffset = blo$getCameraOffset(partialTick);
+                cameraOffset = BLOCameraSetting.getCameraPos(partialTick);
             }
 
 
@@ -780,7 +831,7 @@ public abstract class EpicFightCameraAPIMixin {
                         Mth.lerp(partialTick, camera.getEntity().zo, camera.getEntity().getZ())
                 );
 
-                Vec3 cameraOffset = blo$getCameraOffset(partialTick);
+                Vec3 cameraOffset = BLOCameraSetting.getCameraPos(partialTick);
                 Vec3 desiredPos = playerPos.add(cameraOffset.x, cameraOffset.y, cameraOffset.z);
 
                 double hitDistance = 1.0D;

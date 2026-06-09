@@ -5,6 +5,7 @@ import com.github.exopandora.shouldersurfing.api.model.Perspective;
 import com.github.exopandora.shouldersurfing.client.ShoulderSurfingImpl;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
@@ -13,12 +14,16 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.betterlockon.BetterLockOn;
+import net.shelmarow.betterlockon.client.key.BLOKeyMappings;
 import net.shelmarow.betterlockon.config.LockOnConfig;
+import net.shelmarow.combat_evolution.key.CEKeyMappings;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
 import yesman.epicfight.api.utils.math.Vec3f;
@@ -29,6 +34,13 @@ public class LockOnControl {
 
     private static CameraType lastCameraType = CameraType.FIRST_PERSON;
     private static boolean shouldSurfing = false;
+
+    @SubscribeEvent
+    public static void onKeyInput(TickEvent.ClientTickEvent event) {
+        if (BLOKeyMappings.CHANGE_JOINT.consumeClick()){
+            BLOCameraSetting.setLockonJointIndex(BLOCameraSetting.getLockonJointIndex() + 1);
+        }
+    }
 
     @SubscribeEvent
     public static void movementInputUpdateEvent(MovementInputUpdateEvent event) {

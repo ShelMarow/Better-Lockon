@@ -2,8 +2,14 @@ package net.shelmarow.betterlockon.client.control;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class BLOCameraSetting {
+
+    private static int lockonJointIndex = 0;
+
     //摄像机位置
     private static float cameraOffsetX;
     private static float cameraOffsetXO;
@@ -185,9 +191,15 @@ public class BLOCameraSetting {
         transitionTick = 0;
     }
 
-
     public static boolean transitionFinished() {
         return transitionTick >= maxTransitionTick;
     }
 
+    public static int getLockonJointIndex() {
+        return lockonJointIndex;
+    }
+
+    public static void setLockonJointIndex(int lockonJointIndex) {
+        BLOCameraSetting.lockonJointIndex = lockonJointIndex;
+    }
 }

@@ -2,6 +2,9 @@ package net.shelmarow.betterlockon.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 public class LockOnConfig {
     public static final ForgeConfigSpec CLIENT_CONFIG;
 
@@ -34,6 +37,8 @@ public class LockOnConfig {
     public static final ForgeConfigSpec.DoubleValue FULLY_TRANSPARENCY_DISTANCE;
     public static final ForgeConfigSpec.BooleanValue AUTO_SWITCH_FIRST_PERSON;
     public static final ForgeConfigSpec.DoubleValue AUTO_SWITCH_DISTANCE;
+
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> ENTITY_LOCK_ON_JOINT;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -148,6 +153,52 @@ public class LockOnConfig {
 
         builder.pop();
 
+        builder.push("Entity Lock on Joint List");
+
+        ENTITY_LOCK_ON_JOINT = builder
+                .comment("example: minecraft:zombie#Head,Chest,Default")
+                .defineList("entityLockonJoint",List.of(),o -> o instanceof String s && s.matches("^[^#]+#.+$"));
+
+        builder.pop();
+
         CLIENT_CONFIG = builder.build();
+    }
+
+    public static List<String> getStringSetForEntity(String entityId) {
+        for (String entry : ENTITY_LOCK_ON_JOINT.get()) {
+            Map.Entry<String, List<String>> parsed = parseEntry(entry);
+            if (parsed != null && parsed.getKey().equals(entityId)) {
+                return parsed.getValue();
+            }
+        }
+        return Collections.emptyList();
+    }
+
+    public static Map.Entry<String, List<String>> parseEntry(String entry) {
+        if (entry == null || !entry.contains("#")) {
+            return null;
+        }
+
+        String[] parts = entry.split("#", 2);
+        String entityId = parts[0];
+        String valuesPart = parts[1];
+
+        List<String> values = Arrays.stream(valuesPart.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+        return new AbstractMap.SimpleEntry<>(entityId, values);
+    }
+
+    public static List<String> parseList(String entry) {
+        if (entry == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.stream(entry.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 }

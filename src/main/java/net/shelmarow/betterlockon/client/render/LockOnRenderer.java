@@ -5,24 +5,32 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.nameless.indestructible.main.Indestructible;
 import com.nameless.indestructible.world.capability.Utils.IAdvancedCapability;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.shelmarow.betterlockon.BetterLockOn;
+import net.shelmarow.betterlockon.client.control.BLOCameraSetting;
 import net.shelmarow.betterlockon.client.render.compat.CombatEvolutionCompat;
 import net.shelmarow.betterlockon.client.render.icon.IconTypeManager;
 import net.shelmarow.betterlockon.client.render.icon.type.IconType;
 import net.shelmarow.betterlockon.config.LockOnConfig;
+import net.shelmarow.betterlockon.util.ArmatureUtil;
 import net.shelmarow.combat_evolution.CombatEvolution;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import yesman.epicfight.api.animation.Joint;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.client.gui.EntityUI;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
+
+import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class LockOnRenderer extends EntityUI {
@@ -82,7 +90,52 @@ public class LockOnRenderer extends EntityUI {
 
     @Override
     public void draw(LivingEntity entity, @Nullable LivingEntityPatch<?> entitypatch, LocalPlayerPatch playerpatch, PoseStack poseStack, MultiBufferSource buffers, float partialTicks) {
-        Matrix4f matrix = getModelViewMatrixAlignedToCamera(poseStack, entity, 0.0F,  entity.getBbHeight() * 2 / 3, 0.0F, true, partialTicks);
+
+        Matrix4f matrix = null;
+
+        if(entitypatch != null){
+            int index = BLOCameraSetting.getLockonJointIndex();
+            CompoundTag tag = entity.serializeNBT();
+            if(tag.contains("BetterLockOnJoints")){
+                List<String> lockOnJoints = LockOnConfig.parseList(tag.getString("BetterLockOnJoints"));
+                if(!lockOnJoints.isEmpty()){
+                    index %= lockOnJoints.size();
+                    if(index >= 0 && index < lockOnJoints.size()) {
+                        Joint joint = entitypatch.getArmature().searchJointByName(lockOnJoints.get(index));
+                        if(joint != null && joint.getId() >= 0){
+                            Vec3 pos = ArmatureUtil.getJointWorldPosition(entitypatch, joint, Vec3.ZERO, partialTicks).subtract(entity.getPosition(partialTicks));
+                            matrix = getModelViewMatrixAlignedToCamera(poseStack, entity, (float) pos.x, (float) pos.y, (float) pos.z, true, partialTicks);
+                        }
+                    }
+                }
+            }
+
+            if(matrix == null){
+                ResourceLocation key = ForgeRegistries.ENTITY_TYPES.getKey(entity.getType());
+                if (key != null) {
+                    String id = key.toString();
+                    List<String> joints = LockOnConfig.getStringSetForEntity(id);
+
+                    if(!joints.isEmpty()){
+                        index %= joints.size();
+                        if(index >= 0 && index < joints.size()){
+                            Joint joint = entitypatch.getArmature().searchJointByName(joints.get(index));
+                            if(joint != null && joint.getId() >= 0){
+                                Vec3 pos = ArmatureUtil.getJointWorldPosition(entitypatch, joint, Vec3.ZERO, partialTicks).subtract(entity.getPosition(partialTicks));
+                                matrix = getModelViewMatrixAlignedToCamera(poseStack, entity, (float) pos.x, (float) pos.y, (float) pos.z, true, partialTicks);
+                            }
+                        }
+                        else{
+                            BLOCameraSetting.setLockonJointIndex(0);
+                        }
+                    }
+                }
+            }
+        }
+
+        if(matrix == null){
+            matrix = getModelViewMatrixAlignedToCamera(poseStack, entity, 0.0F,  entity.getBbHeight() * 2 / 3, 0.0F, true, partialTicks);
+        }
 
         float baseSize = (float) LockOnConfig.LOCK_ON_ICON_SIZE.get().doubleValue();
         float size = LockOnConfig.LOCK_ON_SIZE_SCALING.get() ? calculateAdjustedIconSize(baseSize, entity) : baseSize;
