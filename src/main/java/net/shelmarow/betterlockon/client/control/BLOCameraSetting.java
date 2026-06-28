@@ -187,12 +187,22 @@ public class BLOCameraSetting {
         return transitionTick;
     }
 
+
+
     public static void resetTransitionTick() {
         transitionTick = 0;
     }
 
-    public static boolean transitionFinished() {
-        return transitionTick >= maxTransitionTick;
+    public static void setTransitionTick(int tick) {
+        transitionTick = tick;
+    }
+
+    public static int getMaxTransitionTick() {
+        return maxTransitionTick;
+    }
+
+    public static boolean isTransition() {
+        return transitionTick < maxTransitionTick;
     }
 
     public static int getLockonJointIndex() {

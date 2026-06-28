@@ -1,6 +1,7 @@
 package net.shelmarow.betterlockon.compat.mixins;
 
 import com.github.exopandora.shouldersurfing.forge.event.ClientEventHandler;
+import net.shelmarow.betterlockon.client.control.BLOCameraSetting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -9,6 +10,7 @@ import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 
 @Mixin(value = ClientEventHandler.class,remap = false)
 public class ClientEventHandlerMixin {
+
     @Inject(
             method = "movementInputUpdateEvent",
             at = @At(
@@ -18,7 +20,7 @@ public class ClientEventHandlerMixin {
             cancellable = true
     )
     private static void movementInputUpdateEvent(CallbackInfo ci){
-        if (EpicFightCameraAPI.getInstance().isLockingOnTarget()) {
+        if (EpicFightCameraAPI.getInstance().isLockingOnTarget() || BLOCameraSetting.isTransition()) {
             ci.cancel();
         }
     }
@@ -27,12 +29,12 @@ public class ClientEventHandlerMixin {
             method = "movementInputUpdateEvent",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/github/exopandora/shouldersurfing/client/ShoulderSurfingImpl;updatePlayerRotations()V"
+                    target = "Lcom/github/exopandora/shouldersurfing/client/InputHandler;updateMovementInput(Lnet/minecraft/client/player/Input;)V"
             ),
             cancellable = true
     )
     private static void updateRotation(CallbackInfo ci){
-        if (EpicFightCameraAPI.getInstance().isLockingOnTarget()) {
+        if (EpicFightCameraAPI.getInstance().isLockingOnTarget() || BLOCameraSetting.isTransition()) {
             ci.cancel();
         }
     }

@@ -79,7 +79,7 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     implementation fg.deobf("curse.maven:epic-fight-mod-405076:7789099")
-    implementation fg.deobf("libs:CombatEvolution:2.0.5")
+    implementation fg.deobf("libs:CombatEvolution:2.1.10")
     //implementation fg.deobf("libs:anotherview:1.20.1-rse1.0.0")
 
     //implementation fg.deobf('libs:epic_fight_avalon:20.12.3.2')
@@ -96,10 +96,13 @@ dependencies {
 
     implementation fg.deobf("libs:wom:2.0.11")
 
+
     implementation fg.deobf("libs:clothconfig:11.1.136")
     implementation fg.deobf("libs:architectury:9.2.14")
-    implementation fg.deobf("libs:leawindthirdperson:2.2.0")
-    compileOnly("libs:ShoulderSurfing:4.14.1")
+    compileOnly("libs:leawindthirdperson:2.2.0")
+
+    //implementation fg.deobf("libs:ShoulderSurfing:4.14.1")
+    compileOnly("curse.maven:shoulder-surfing-reloaded-243190:8307377")
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'

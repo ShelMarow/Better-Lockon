@@ -266,6 +266,9 @@ public abstract class EpicFightCameraAPIMixin {
         BLOCameraSetting.fovOffset = 0;
         BLOCameraSetting.resetTransitionTick();
         BLOCameraSetting.setTargetOffset(0,0,0);
+        if(ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID)){
+            HandlerShoulderSurfingCompat.disableLockOn();
+        }
     }
 
     @Redirect(
@@ -278,7 +281,7 @@ public abstract class EpicFightCameraAPIMixin {
     private void onSetLockOn2(EpicFightCameraAPI instance, float xRot, float yRot, boolean syncOld){
         BLOCameraSetting.resetTransitionTick();
         if(ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID)){
-            HandlerShoulderSurfingCompat.handlerCam();
+            HandlerShoulderSurfingCompat.setLockOn();
         }
         else {
             instance.setCameraRotations(xRot, yRot, syncOld);
@@ -724,6 +727,9 @@ public abstract class EpicFightCameraAPIMixin {
             return;
         }
 
+        if(ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID) && isLockingOnTarget()){
+            HandlerShoulderSurfingCompat.setupCamera();
+        }
 
         if (this.isTPSMode()) {
             float partialZoomTick = this.zoomTick == 0 ? 0.0F : Math.min(this.zoomTick + (this.zoomingIn ? partialTick : -partialTick), blo$maxZoomTick - 1);
@@ -733,7 +739,7 @@ public abstract class EpicFightCameraAPIMixin {
             camera.setRotation(yRot, xRot);
 
             Vec3 cameraOffset = Vec3.ZERO;
-            if(isLockingOnTarget() || !BLOCameraSetting.transitionFinished()){
+            if(isLockingOnTarget() || BLOCameraSetting.isTransition()){
                 cameraOffset = BLOCameraSetting.getCameraPos(partialTick);
             }
 
@@ -817,7 +823,7 @@ public abstract class EpicFightCameraAPIMixin {
             cir.setReturnValue(event);
             return;
         }
-        else if((!BLOCameraSetting.transitionFinished() && this.minecraft.options.getCameraType() == CameraType.THIRD_PERSON_BACK) || (this.lockingOnTarget && this.focusingEntity != null)){
+        else if((BLOCameraSetting.isTransition() && this.minecraft.options.getCameraType() == CameraType.THIRD_PERSON_BACK) || (this.lockingOnTarget && this.focusingEntity != null)){
             if (this.minecraft.options.getCameraType() == CameraType.THIRD_PERSON_BACK) {
                 float xRot = Mth.rotLerp(partialTick, this.cameraXRotO, this.cameraXRot);
                 float yRot = Mth.rotLerp(partialTick, this.cameraYRotO, this.cameraYRot);

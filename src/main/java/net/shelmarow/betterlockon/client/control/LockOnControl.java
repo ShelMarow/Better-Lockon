@@ -1,11 +1,10 @@
 package net.shelmarow.betterlockon.client.control;
 
 import com.github.exopandora.shouldersurfing.ShoulderSurfingCommon;
-import com.github.exopandora.shouldersurfing.api.model.Perspective;
-import com.github.exopandora.shouldersurfing.client.ShoulderSurfingImpl;
+import com.github.exopandora.shouldersurfing.api.client.Perspective;
+import com.github.exopandora.shouldersurfing.client.ShoulderSurfing;
 import net.minecraft.client.Camera;
 import net.minecraft.client.CameraType;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.Input;
 import net.minecraft.client.player.LocalPlayer;
@@ -14,7 +13,6 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -23,7 +21,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.shelmarow.betterlockon.BetterLockOn;
 import net.shelmarow.betterlockon.client.key.BLOKeyMappings;
 import net.shelmarow.betterlockon.config.LockOnConfig;
-import net.shelmarow.combat_evolution.key.CEKeyMappings;
 import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.api.utils.math.OpenMatrix4f;
 import yesman.epicfight.api.utils.math.Vec3f;
@@ -70,7 +67,7 @@ public class LockOnControl {
             double changeDistance = LockOnConfig.AUTO_SWITCH_DISTANCE.get();
             if(cameraType == CameraType.THIRD_PERSON_BACK && distanceToCamera > 0.05 && distanceToCamera < changeDistance * changeDistance){
                 if(LockOnConfig.AUTO_SWITCH_FIRST_PERSON.get()){
-                    shouldSurfing = ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID) && ShoulderSurfingImpl.getInstance().isShoulderSurfing();
+                    shouldSurfing = ModList.get().isLoaded(ShoulderSurfingCommon.MOD_ID) && ShoulderSurfing.getInstance().isShoulderSurfing();
                     if(EpicFightCameraAPI.getInstance().isTPSMode()){
                         player.setYRot(camera.getYRot());
                         player.setXRot(camera.getXRot());
@@ -84,7 +81,7 @@ public class LockOnControl {
                 if(zoom >= changeDistance + 0.5){
                     if(LockOnConfig.AUTO_SWITCH_FIRST_PERSON.get()){
                         if(shouldSurfing){
-                            ShoulderSurfingImpl.getInstance().changePerspective(Perspective.SHOULDER_SURFING);
+                            ShoulderSurfing.getInstance().changePerspective(Perspective.SHOULDER_SURFING);
                         }
                         else {
                             minecraft.options.setCameraType(lastCameraType);
@@ -141,7 +138,7 @@ public class LockOnControl {
         Minecraft minecraft =  Minecraft.getInstance();
 
         Vec3 cameraOffset = Vec3.ZERO;
-        if(isLockingOnTarget || !BLOCameraSetting.transitionFinished()){
+        if(isLockingOnTarget || BLOCameraSetting.isTransition()){
             cameraOffset = BLOCameraSetting.getCameraPos(partialTick);
         }
 

@@ -1,6 +1,7 @@
 package net.shelmarow.betterlockon;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.ComputeFovModifierEvent;
 import net.minecraftforge.common.MinecraftForge;
