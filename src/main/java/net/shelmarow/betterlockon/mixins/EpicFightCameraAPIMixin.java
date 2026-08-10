@@ -214,7 +214,34 @@ public abstract class EpicFightCameraAPIMixin {
             if (sendChange) this.sendTargeting(this.focusingEntity);
         });
         if(next.isPresent()) {
-            BLOCameraSetting.setLockonJointIndex(0);
+            LivingEntity entity = next.get().getFirst();
+            CompoundTag tag = entity.serializeNBT();
+
+            int index = 0;
+            double distance = Double.MAX_VALUE;
+
+            if(tag.contains("BetterLockOnJoints")){
+                List<String> lockOnJoints = LockOnConfig.parseList(tag.getString("BetterLockOnJoints"));
+                int i = 0;
+                for (String jointName  : lockOnJoints) {
+                    LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(entity, LivingEntityPatch.class);
+                    if (targetPatch != null) {
+                        Joint joint = targetPatch.getArmature().searchJointByName(jointName);
+                        if(joint != null && joint.getId() >= 0){
+                            Vec3 position = ArmatureUtil.getJointWorldPosition(targetPatch, joint, Vec3.ZERO);
+                            if (Minecraft.getInstance().player != null) {
+                                double distanceTo = Minecraft.getInstance().player.position().distanceTo(position);
+                                if(distanceTo < distance){
+                                    distance = distanceTo;
+                                    index = i;
+                                }
+                            }
+                        }
+                    }
+                    i++;
+                }
+            }
+            BLOCameraSetting.setLockonJointIndex(index);
         }
 
         cir.setReturnValue(next.isPresent());
@@ -536,6 +563,7 @@ public abstract class EpicFightCameraAPIMixin {
                 lockStart = localPlayer.getEyePosition();
                 lockEnd = this.focusingEntity.getEyePosition();
 
+                //TODO根据距离
                 LivingEntityPatch<?> targetPatch = EpicFightCapabilities.getEntityPatch(this.focusingEntity, LivingEntityPatch.class);
                 if(targetPatch != null){
                     boolean foundJoint = false;
@@ -659,7 +687,7 @@ public abstract class EpicFightCameraAPIMixin {
                     }
                     else {
                         Vec3 toHitResult;
-                        if (this.lockingOnTarget) {
+                        if (this.lockingOnTarget && this.focusingEntity != null) {
                             toHitResult = this.focusingEntity.getEyePosition();
                         } else if (this.crosshairHitResult.getType() == HitResult.Type.MISS) {
                             double delta = Mth.clamp(localPlayer.getXRot(), -30.0F, 0.0F) / -30.0F;

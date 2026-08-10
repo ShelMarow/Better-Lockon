@@ -102,7 +102,7 @@ dependencies {
     compileOnly("libs:leawindthirdperson:2.2.0")
 
     //implementation fg.deobf("libs:ShoulderSurfing:4.14.1")
-    compileOnly("curse.maven:shoulder-surfing-reloaded-243190:8307377")
+    implementation fg.deobf("curse.maven:shoulder-surfing-reloaded-243190:8307377")
 
     implementation 'org.spongepowered:mixin:0.8.5'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
